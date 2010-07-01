@@ -1,0 +1,7 @@
+h1. SIPATRA
+
+Sipatra is a simple Sinatra like DSL for SIP Servlets
+
+h2. Dependencies
+
+* JRuby 1.5.1

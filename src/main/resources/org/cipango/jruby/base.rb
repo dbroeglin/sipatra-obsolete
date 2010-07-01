@@ -84,14 +84,15 @@ module Sipatra
   end
   
   class Application < Base
+    attr_accessor :sipFactory, :context, :session, :request, :response, :params
+    
     def self.register(*extensions, &block) #:nodoc:
       added_methods = extensions.map {|m| m.public_instance_methods }.flatten
       Delegator.delegate(*added_methods)
       super(*extensions, &block)
     end
     
-    def do_request(request)
-      @request = request
+    def do_request
       puts "DO REQUEST #{request.inspect} #{request.getMethod()}"
       puts "#{self.class.routes.inspect}"
       handlers = self.class.routes[request.getMethod()]
@@ -100,35 +101,14 @@ module Sipatra
       instance_eval(&handler[1])
     end
     
-    def do_response(response)
+    def do_response
       puts "DO RESPONSE"
     end
     
     def proxy(uri = nil)
       uri = uri.nil? ? request.getRequestURI() : sipFactory.createURI(uri)
       request.getProxy().proxyTo(uri)
-    end
-    
-    def request
-       @request
-    end
-    
-    def response
-       @response
-    end
-    
-    def sipFactory
-      @sipFactory
-    end
-    
-    def session
-      @session
-    end
-    
-    def params
-      @params
-    end
-    
+    end    
     
     #def sendResponse(status, reason = nil) 
     #  if reason.nil?

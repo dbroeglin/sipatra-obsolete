@@ -78,14 +78,16 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 		// TODO: derive it from the servlets package name
 		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/jruby/base.rb");
 		_container.runScriptlet(PathType.ABSOLUTE, classpath + "/application.rb");
+		_container.runScriptlet("@app = Sipatra::Application::new");
 	}
 
 	@Override
 	public void doRequest(SipServletRequest request) throws IOException
 	{
     _container.getVarMap().clear();
-    setBindings(request);
-    _container.put("@request", request);
+    Object app = _container.runScriptlet("@app");
+    setBindings(app, request);
+    
     Map<String, Object> params = new LinkedHashMap<String, Object>();
 		for (Enumeration names = request.getParameterNames(); names.hasMoreElements();)
 		{
@@ -100,22 +102,24 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 				params.put(name, values);
 			}
 		}
-		_container.put("@params", params);
-    _container.runScriptlet("Sipatra::Application::new.do_request(@request)");
+	  _container.callMethod(app, "request=", new Object[] { request });
+	  _container.callMethod(app, "params=", new Object[] { params });
+	  _container.callMethod(app, "do_request");
 	}
 	
 	@Override
 	public void doResponse(SipServletResponse response) throws IOException
 	{
+    Object app = _container.runScriptlet("@app");
     _container.getVarMap().clear();
-    setBindings(response);
-    _container.put("@response", response);
-    _container.runScriptlet("Sipatra::Application::new.do_response(@response)");
+    setBindings(app, response);
+	  _container.callMethod(app, "response=", new Object[] { response });
+	  _container.callMethod(app, "do_response");
 	}	
 	
-	private void setBindings(SipServletMessage message) {
-    _container.put("@context", _servletContext);
-    _container.put("@sipFactory", _servletContext.getAttribute(SipServlet.SIP_FACTORY));
-    _container.put("@session", message.getSession());	  
+	private void setBindings(Object app, SipServletMessage message) {
+	  _container.callMethod(app, "context=", new Object[] { _servletContext });
+  	_container.callMethod(app, "sipFactory=", new Object[] { _servletContext.getAttribute(SipServlet.SIP_FACTORY) });
+  	_container.callMethod(app, "session=", new Object[] { message.getSession() });
 	}
 }

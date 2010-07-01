@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -43,25 +44,8 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 {
   private ScriptingContainer _container;
 	private ServletContext _servletContext;
-  private EvalUnit _requestScript;
-  private EvalUnit _responseScript;
-
-  private static final String HELPERS = 
-    "def request; @request; end;" +
-    "def response; @response; end;" +
-    "def sipFactory; @sipFactory; end;" +
-    "def session; @session; end;" +
-    "def params; @params; end;" +
-    "def proxy;  end;" +
-    "def proxy(uri = nil); " +
-    "  uri = uri.nil? ? request.getRequestURI() : sipFactory.createURI(uri);" +
-    "  request.getProxy().proxyTo(uri);" +
-    "end;" +
-    "def sendResponse(status, reason = nil);" + 
-    "  response = reason.nil? ? request.createResponse(status) : request.createResponse(status, reason);" +
-    "  response.send();" +
-    "end;" +
-    "def pushRoute(route); request.pushRoute(sipFactory.createAddress(route)); end;";
+//  private EvalUnit _requestScript;
+//  private EvalUnit _responseScript;
 
   /**
 	 * Initialize the jrubyServlet.
@@ -74,22 +58,26 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 	{
 		super.init(config);
     
-    String classpath = getServletContext().getRealPath("/WEB-INF/classes");
-    List<String> loadPaths = Arrays.asList(classpath.split(File.pathSeparator));
+    String classpath = getServletContext().getRealPath("/WEB-INF/jruby");
+    List<String> loadPaths = new ArrayList<String>();
     
+    loadPaths.add(classpath);    
     _container = new ScriptingContainer();
     _container.getProvider().setLoadPaths(loadPaths);
 		_servletContext = config.getServletContext();
 		
-		_requestScript = _container.parse(getServletContext().getResourceAsStream("/WEB-INF/jruby/requests.rb"), "requests.rb");
-		if (_requestScript == null) {
-		  throw new ServletException("Unable to find '/WEB-INF/jruby/requests.rb'");
-		}
-		_responseScript = _container.parse(getServletContext().getResourceAsStream("/WEB-INF/jruby/responses.rb"), "responses.rb");
-		if (_responseScript == null) {
-		  throw new ServletException("Unable to find '/WEB-INF/jruby/responses.rb'"); 
-		}
-		_container.runScriptlet(HELPERS);
+// 	_requestScript = _container.parse(getServletContext().getResourceAsStream("/WEB-INF/jruby/requests.rb"), "requests.rb");
+// 	if (_requestScript == null) {
+// 	  throw new ServletException("Unable to find '/WEB-INF/jruby/requests.rb'");
+// 	}
+// 	_responseScript = _container.parse(getServletContext().getResourceAsStream("/WEB-INF/jruby/responses.rb"), "responses.rb");
+// 	if (_responseScript == null) {
+// 	  throw new ServletException("Unable to find '/WEB-INF/jruby/responses.rb'"); 
+// 	}
+		
+		// TODO: derive it from the servlets package name
+		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/jruby/base.rb");
+		_container.runScriptlet(PathType.ABSOLUTE, classpath + "/application.rb");
 	}
 
 	@Override
@@ -113,7 +101,7 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 			}
 		}
 		_container.put("@params", params);
-    _requestScript.run();
+    _container.runScriptlet("Sipatra::Application::new.do_request(@request)");
 	}
 	
 	@Override
@@ -122,7 +110,7 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
     _container.getVarMap().clear();
     setBindings(response);
     _container.put("@response", response);
-    _responseScript.run();
+    _container.runScriptlet("Sipatra::Application::new.do_response(@response)");
 	}	
 	
 	private void setBindings(SipServletMessage message) {

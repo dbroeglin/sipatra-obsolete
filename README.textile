@@ -16,6 +16,29 @@ register do
 end
 </pre>
 
+Those handlers have to be put in a file called @WEB-INF/jruby/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@:
+
+<pre>
+  <servlet>
+      <servlet-name>jruby</servlet-name>
+      <servlet-class>org.cipango.jruby.JRubyServlet</servlet-class>
+      <load-on-startup/>
+  </servlet>
+</pre>
+
 h2. Dependencies
 
-* JRuby 1.5.1
+In order to use the cipango-jruby-1.0-SNAPSHOT.jar you also need to put those jars into your @WEB-INF/lib@ directory.
+
+* bytelist-1.0.6.jar
+* cipango-jruby-1.0-SNAPSHOT.jar
+* constantine-0.6.jar
+* jaffl-0.5.1.jar
+* jcodings-1.0.4.jar
+* jffi-1.0.1.jar
+* jline-0.9.93.jar
+* jnr-netdb-1.0.jar
+* jnr-posix-1.1.4.jar
+* joda-time-1.6.jar
+* joni-1.1.4.jar
+* jruby-1.5.1.jar

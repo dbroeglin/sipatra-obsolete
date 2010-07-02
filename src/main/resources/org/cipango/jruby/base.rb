@@ -1,30 +1,7 @@
-
-#
-#def sendResponse(status, reason = nil) 
-#  if reason.nil?
-#    request.createResponse(status).send()
-#  else 
-#    request.createResponse(status, reason).send()
-#  end
-#end
-#
-#def pushRoute(route)
-#  request.pushRoute(sipFactory.createAddress(route))
-#end
-
 require 'java'
 
 module Sipatra
   VERSION = '1.0.0'
-  
-#  include_class 'javax.servlet.sip.SipServletRequest'
-#  include_class 'javax.servlet.sip.SipServletResponse'
-#    
-#  class Request < SipServletRequest
-#  end 
-#
-#  class Response < SipServletResponse
-#  end 
 
   class Base
 
@@ -38,8 +15,12 @@ module Sipatra
       end
     
       public
-        def invite(path, opts = {}, &block) 
+        def invite(path = //, opts = {}, &block) 
           handler('INVITE', path, opts, &block)
+        end
+
+        def register(path = //, opts = {}, &block) 
+          handler('REGISTER', path, opts, &block)
         end
         
       private
@@ -87,12 +68,12 @@ module Sipatra
     end
     
     def do_request
-      puts "DO REQUEST: #{request.getMethod()} #{request.getRequestURI()}"
+      puts "DO REQUEST: #{request.method} #{request.requestURI}"
       puts "#{self.class.handlers.inspect}"
-      if handlers = self.class.handlers[request.getMethod()]
+      if handlers = self.class.handlers[request.method]
         handlers.each { |pattern, keys, conditions, block|
           puts "PATTERN: #{pattern}"
-          if pattern.match request.getRequestURI.toString
+          if pattern.match request.requestURI.toString
             # TODO: use keys and conditions
             instance_eval(&block)          
             break
@@ -136,7 +117,7 @@ module Sipatra
       end
     end
 
-    delegate :invite
+    delegate :invite, :register
   end
 end
 

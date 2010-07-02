@@ -44,8 +44,6 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 {
   private ScriptingContainer _container;
 	private ServletContext _servletContext;
-//  private EvalUnit _requestScript;
-//  private EvalUnit _responseScript;
 
   /**
 	 * Initialize the jrubyServlet.
@@ -66,26 +64,22 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
     _container.getProvider().setLoadPaths(loadPaths);
 		_servletContext = config.getServletContext();
 		
-// 	_requestScript = _container.parse(getServletContext().getResourceAsStream("/WEB-INF/jruby/requests.rb"), "requests.rb");
-// 	if (_requestScript == null) {
-// 	  throw new ServletException("Unable to find '/WEB-INF/jruby/requests.rb'");
-// 	}
-// 	_responseScript = _container.parse(getServletContext().getResourceAsStream("/WEB-INF/jruby/responses.rb"), "responses.rb");
-// 	if (_responseScript == null) {
-// 	  throw new ServletException("Unable to find '/WEB-INF/jruby/responses.rb'"); 
-// 	}
-		
 		// TODO: derive it from the servlets package name
 		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/jruby/base.rb");
 		_container.runScriptlet(PathType.ABSOLUTE, classpath + "/application.rb");
-		_container.runScriptlet("@app = Sipatra::Application::new");
+		
 	}
+
+  private Object getSipatraApp() {
+    return _container.runScriptlet("Sipatra::Application::new");
+  }
 
 	@Override
 	public void doRequest(SipServletRequest request) throws IOException
 	{
     _container.getVarMap().clear();
-    Object app = _container.runScriptlet("@app");
+     Object app = getSipatraApp();
+  
     setBindings(app, request);
     
     Map<String, Object> params = new LinkedHashMap<String, Object>();
@@ -110,7 +104,8 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 	@Override
 	public void doResponse(SipServletResponse response) throws IOException
 	{
-    Object app = _container.runScriptlet("@app");
+    Object app = getSipatraApp();
+    
     _container.getVarMap().clear();
     setBindings(app, response);
 	  _container.callMethod(app, "response=", new Object[] { response });

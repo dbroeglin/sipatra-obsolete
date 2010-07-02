@@ -6,14 +6,15 @@ h2. Handlers
 
 In Sipatra an handler is a SIP method paired with an URI matching pattern and some conditions. Each handler is associated with a block:
 
-bc. invite 'sip:standard@.*' do
+<pre>
+invite 'sip:standard@.*' do
     proxy "sip:0123456789@#{request.getRequestURI.getHost}"
 end
 
-bc. register do
-  proxy
+register do
+    proxy
 end
-
+</pre>
 
 h2. Dependencies
 

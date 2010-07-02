@@ -1,23 +1,4 @@
-#def request
-#   @request
-#end
-#
-#def response
-#   @response
-#end
-#
-#def sipFactory
-#  @sipFactory
-#end
-#
-#def session
-#  @session
-#end
-#
-#def params
-#  @params
-#end
-#
+
 #
 #def sendResponse(status, reason = nil) 
 #  if reason.nil?
@@ -48,24 +29,37 @@ module Sipatra
   class Base
 
     class << self
-      attr_reader :routes
+      attr_reader :handlers
     
       private
       
       def reset!
-        @routes         = {}
+        @handlers         = {}
       end
     
       public
         def invite(path, opts = {}, &block) 
-          route('INVITE', path, opts, &block)
+          handler('INVITE', path, opts, &block)
         end
+        
       private
-        def route(verb, path, options={}, &block)
-          puts "Recording #{verb} in #{name}"
+      
+        def compile_uri_pattern(uri)
+          keys = [] # TODO: Not yet used, shall contain key names
+          if uri.respond_to? :to_str
+            [/^#{uri}$/, keys]
+          elsif uri.respond_to? :match
+            [uri, keys]
+          else
+            raise TypeError, uri
+          end
+        end
+      
+        def handler(verb, uri, options={}, &block)
+          puts "Recording handler for #{verb} in #{name}"
 
-          define_method "#{verb} #{path}", &block
-          unbound_method = instance_method("#{verb} #{path}")
+          define_method "#{verb} #{uri}", &block
+          unbound_method = instance_method("#{verb} #{uri}")
           block =
             if block.arity != 0
               proc { unbound_method.bind(self).call(*@block_params) }
@@ -73,9 +67,9 @@ module Sipatra
               proc { unbound_method.bind(self).call }
             end
   
-          pattern = verb # TODO: construct a real pattern
-          ((@routes ||= {})[verb] ||= []).
-            push([pattern, block]).last
+          pattern, keys = compile_uri_pattern(uri)
+          ((@handlers ||= {})[verb] ||= []).
+            push([pattern, keys, nil, block]).last # TODO: conditions
           
         end        
     end
@@ -93,12 +87,19 @@ module Sipatra
     end
     
     def do_request
-      puts "DO REQUEST #{request.inspect} #{request.getMethod()}"
-      puts "#{self.class.routes.inspect}"
-      handlers = self.class.routes[request.getMethod()]
-      handler = handlers.first
+      puts "DO REQUEST: #{request.getMethod()} #{request.getRequestURI()}"
+      puts "#{self.class.handlers.inspect}"
+      if handlers = self.class.handlers[request.getMethod()]
+        handlers.each { |pattern, keys, conditions, block|
+          puts "PATTERN: #{pattern}"
+          if pattern.match request.getRequestURI.toString
+            # TODO: use keys and conditions
+            instance_eval(&block)          
+            break
+          end
+        }
+      end
       
-      instance_eval(&handler[1])
     end
     
     def do_response

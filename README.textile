@@ -2,6 +2,8 @@ h1. SIPATRA
 
 Sipatra is a simple Sinatra like DSL for SIP Servlets. It's heavily inspired from Sinatra and was adapted only in those areas that were required by differences between the HTTP and SIP protocols.
 
+Sipatra is a work in progress.
+
 h2. Handlers
 
 In Sipatra an handler is a SIP method paired with an URI matching pattern and some conditions. Each handler is associated with a block:

@@ -9,8 +9,7 @@
   <artifactId>cipango-jruby</artifactId>
   <name>JRuby extension for SIP Servlets</name>
   <packaging>jar</packaging>
-
-  
+  <version>0.1-SNAPSHOT</version>
   <dependencies>
     <dependency>
       <groupId>org.jruby</groupId>

@@ -16,7 +16,7 @@ register do
 end
 </pre>
 
-Those handlers have to be put in a file called @WEB-INF/jruby/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@:
+Those handlers have to be put in a file called @WEB-INF/jruby/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@:. Handlers exist for the following SIP methods: ACK, BYE, CANCEL, INFO, INVITE, MESSAGE, NOTIFY, OPTIONS, PRACK, PUBLISH, REFER, REGISTER, SUBSCRIBE, UPDATE (http://en.wikipedia.org/wiki/List_of_SIP_request_methods).
 
 <pre>
   <servlet>

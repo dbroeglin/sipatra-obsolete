@@ -4,7 +4,6 @@ module Sipatra
   VERSION = '1.0.0'
 
   class Base
-
     class << self
       attr_reader :handlers
     
@@ -13,15 +12,6 @@ module Sipatra
       def reset!
         @handlers         = {}
       end
-    
-      public
-        def invite(path = //, opts = {}, &block) 
-          handler('INVITE', path, opts, &block)
-        end
-
-        def register(path = //, opts = {}, &block) 
-          handler('REGISTER', path, opts, &block)
-        end
         
       private
       
@@ -39,8 +29,9 @@ module Sipatra
         def handler(verb, uri, options={}, &block)
           puts "Recording handler for #{verb} in #{name}"
 
-          define_method "#{verb} #{uri}", &block
-          unbound_method = instance_method("#{verb} #{uri}")
+          method_name = "#{verb}  #{uri}"
+          define_method method_name, &block
+          unbound_method = instance_method(method_name)
           block =
             if block.arity != 0
               proc { unbound_method.bind(self).call(*@block_params) }
@@ -53,6 +44,16 @@ module Sipatra
             push([pattern, keys, nil, block]).last # TODO: conditions
           
         end        
+    end
+    
+    eigenclass = (class << self; self; end)
+     [:ack, :bye, :cancel, :info, :invite, :message, 
+      :notify, :options, :prack, :publish, :refer, 
+      :register, :subscribe, :update].each do |name|
+      eigenclass.send :define_method, name do |*args, &block|
+        path, opts = *args
+        handler(name.to_s.upcase, path || //, opts || {}, &block)
+      end
     end
     
     reset!    

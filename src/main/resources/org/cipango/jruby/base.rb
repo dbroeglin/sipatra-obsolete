@@ -4,46 +4,63 @@ module Sipatra
   VERSION = '1.0.0'
 
   class Base
+    def do_request
+      puts "DO REQUEST: #{request.method} #{request.requestURI}"
+      puts "#{self.class.handlers.inspect}"
+      if handlers = self.class.handlers[request.method]
+        handlers.each { |pattern, keys, conditions, block|
+          puts "PATTERN: #{pattern}"
+          if pattern.match request.requestURI.toString
+            # TODO: use keys and conditions
+            instance_eval(&block)          
+            break
+          end
+        }
+      end
+    end
+
+    def do_response
+      puts "DO RESPONSE"
+    end
+    
     class << self
       attr_reader :handlers
-    
+  
       private
       
       def reset!
         @handlers         = {}
       end
         
-      private
-      
-        def compile_uri_pattern(uri)
-          keys = [] # TODO: Not yet used, shall contain key names
-          if uri.respond_to? :to_str
-            [/^#{uri}$/, keys]
-          elsif uri.respond_to? :match
-            [uri, keys]
-          else
-            raise TypeError, uri
-          end
+      def compile_uri_pattern(uri)
+        keys = [] # TODO: Not yet used, shall contain key names
+        if uri.respond_to? :to_str
+          [/^#{uri}$/, keys]
+        elsif uri.respond_to? :match
+          [uri, keys]
+        else
+          raise TypeError, uri
         end
-      
-        def handler(verb, uri, options={}, &block)
-          puts "Recording handler for #{verb} in #{name}"
+      end
+    
+      def handler(verb, uri, options={}, &block)
+        puts "Recording handler for #{verb} in #{name}"
 
-          method_name = "#{verb}  #{uri}"
-          define_method method_name, &block
-          unbound_method = instance_method(method_name)
-          block =
-            if block.arity != 0
-              proc { unbound_method.bind(self).call(*@block_params) }
-            else
-              proc { unbound_method.bind(self).call }
-            end
-  
-          pattern, keys = compile_uri_pattern(uri)
-          ((@handlers ||= {})[verb] ||= []).
-            push([pattern, keys, nil, block]).last # TODO: conditions
-          
-        end        
+        method_name = "#{verb}  #{uri}"
+        define_method method_name, &block
+        unbound_method = instance_method(method_name)
+        block =
+          if block.arity != 0
+            proc { unbound_method.bind(self).call(*@block_params) }
+          else
+            proc { unbound_method.bind(self).call }
+          end
+
+        pattern, keys = compile_uri_pattern(uri)
+        ((@handlers ||= {})[verb] ||= []).
+          push([pattern, keys, nil, block]).last # TODO: conditions
+        
+      end        
     end
     
     eigenclass = (class << self; self; end)
@@ -66,26 +83,6 @@ module Sipatra
       added_methods = extensions.map {|m| m.public_instance_methods }.flatten
       Delegator.delegate(*added_methods)
       super(*extensions, &block)
-    end
-    
-    def do_request
-      puts "DO REQUEST: #{request.method} #{request.requestURI}"
-      puts "#{self.class.handlers.inspect}"
-      if handlers = self.class.handlers[request.method]
-        handlers.each { |pattern, keys, conditions, block|
-          puts "PATTERN: #{pattern}"
-          if pattern.match request.requestURI.toString
-            # TODO: use keys and conditions
-            instance_eval(&block)          
-            break
-          end
-        }
-      end
-      
-    end
-    
-    def do_response
-      puts "DO RESPONSE"
     end
     
     def proxy(uri = nil)

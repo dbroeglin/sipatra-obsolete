@@ -1,0 +1,1 @@
+require 'src/main/resources/org/cipango/jruby/base'

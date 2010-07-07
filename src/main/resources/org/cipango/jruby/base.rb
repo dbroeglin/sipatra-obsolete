@@ -4,13 +4,14 @@ module Sipatra
   VERSION = '1.0.0'
 
   class Base
+    attr_accessor :sipFactory, :context, :session, :request, :response, :params
+
     def do_request
       puts "DO REQUEST: #{request.method} #{request.requestURI}"
-      puts "#{self.class.handlers.inspect}"
       if handlers = self.class.handlers[request.method]
         handlers.each { |pattern, keys, conditions, block|
           puts "PATTERN: #{pattern}"
-          if pattern.match request.requestURI.toString
+          if pattern.match request.requestURI.to_s
             # TODO: use keys and conditions
             instance_eval(&block)          
             break
@@ -22,9 +23,14 @@ module Sipatra
     def do_response
       puts "DO RESPONSE"
     end
-    
+        
     class << self
       attr_reader :handlers
+  
+      # permits configuration of the application
+      def configure(*envs, &block)
+        yield self if envs.empty? || envs.include?(environment.to_sym)
+      end
   
       private
       
@@ -73,22 +79,28 @@ module Sipatra
       end
     end
     
-    reset!    
-  end
-  
-  class Application < Base
-    attr_accessor :sipFactory, :context, :session, :request, :response, :params
-    
-    def self.register(*extensions, &block) #:nodoc:
-      added_methods = extensions.map {|m| m.public_instance_methods }.flatten
-      Delegator.delegate(*added_methods)
-      super(*extensions, &block)
-    end
+    reset!
     
     def proxy(uri = nil)
       uri = uri.nil? ? request.getRequestURI() : sipFactory.createURI(uri)
       request.getProxy().proxyTo(uri)
     end    
+    
+    def header
+      @header_wrapper ||= HeaderWrapper::new(request)
+    end
+
+    def headers
+      @headers_wrapper ||= HeadersWrapper::new(request)
+    end    
+  end
+  
+  class Application < Base    
+    def self.register(*extensions, &block) #:nodoc:
+      added_methods = extensions.map {|m| m.public_instance_methods }.flatten
+      Delegator.delegate(*added_methods)
+      super(*extensions, &block)
+    end
     
     #def sendResponse(status, reason = nil) 
     #  if reason.nil?
@@ -100,7 +112,27 @@ module Sipatra
     #
     #def pushRoute(route)
     #  request.pushRoute(sipFactory.createAddress(route))
-    #end
+    #end    
+  end
+  
+  class HeaderWrapper
+    def initialize(request)
+      @request = request
+    end
+    
+    def [](name)
+      @request.getHeader(name.to_s)
+    end
+  end
+
+  class HeadersWrapper
+    def initialize(request)
+      @request = request
+    end
+    
+    def [](name)
+      @request.getHeaders(name.to_s).to_a
+    end
   end
   
   module Delegator #:nodoc:

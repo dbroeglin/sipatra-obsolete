@@ -3,6 +3,21 @@ require 'java'
 module Sipatra
   VERSION = '1.0.0'
 
+  module HelperMethods
+    def proxy(uri = nil)
+      uri = uri.nil? ? request.getRequestURI() : sipFactory.createURI(uri)
+      request.getProxy().proxyTo(uri)
+    end    
+    
+    def header
+      @header_wrapper ||= HeaderWrapper::new(request)
+    end
+
+    def headers
+      @headers_wrapper ||= HeadersWrapper::new(request)
+    end
+  end
+
   class Base
     attr_accessor :sipFactory, :context, :session, :request, :response, :params
 
@@ -10,7 +25,7 @@ module Sipatra
       puts "DO REQUEST: #{request.method} #{request.requestURI}"
       if handlers = self.class.handlers[request.method]
         handlers.each { |pattern, keys, conditions, block|
-          puts "PATTERN: #{pattern}"
+          puts "PATTERN: #{pattern.source}"
           if pattern.match request.requestURI.to_s
             # TODO: use keys and conditions
             instance_eval(&block)          
@@ -80,19 +95,8 @@ module Sipatra
     end
     
     reset!
-    
-    def proxy(uri = nil)
-      uri = uri.nil? ? request.getRequestURI() : sipFactory.createURI(uri)
-      request.getProxy().proxyTo(uri)
-    end    
-    
-    def header
-      @header_wrapper ||= HeaderWrapper::new(request)
-    end
 
-    def headers
-      @headers_wrapper ||= HeadersWrapper::new(request)
-    end    
+    include HelperMethods
   end
   
   class Application < Base    

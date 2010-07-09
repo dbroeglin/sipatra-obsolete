@@ -56,17 +56,17 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 	{
 		super.init(config);
     
-    String classpath = getServletContext().getRealPath("/WEB-INF/jruby");
+    String appPath = getServletContext().getRealPath("/WEB-INF/jruby");
     List<String> loadPaths = new ArrayList<String>();
     
-    loadPaths.add(classpath);    
+    loadPaths.add(appPath);    
     _container = new ScriptingContainer();
     _container.getProvider().setLoadPaths(loadPaths);
 		_servletContext = config.getServletContext();
 		
 		// TODO: derive it from the servlets package name
 		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/jruby/base.rb");
-		_container.runScriptlet(PathType.ABSOLUTE, classpath + "/application.rb");
+		_container.runScriptlet(PathType.ABSOLUTE, appPath + "/application.rb");
 		
 	}
 

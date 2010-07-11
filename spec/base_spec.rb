@@ -52,17 +52,46 @@ class MockRequest
   alias :getProxy :proxy
 end
 
+def mock_request(method, uri)
+  request = mock('MockSipRequest')
+  request.should_receive(:method).any_number_of_times.and_return(method)
+  request.should_receive(:requestURI).any_number_of_times.and_return(uri)
+
+  request
+end
+
 describe 'Sipatra::Base instances' do
-  class TestApp
-    invite /sip:foo.*/ do
-      respond_to?(:header).should be_true
-      header.respond_to?("[]").should be_true
+  class TestMethodsApp < Sipatra::Base
+    invite /^sip:header$/ do
+      header[:toto].should == 'test1'
+      header['toto'].should == 'test1'
+    end
+    invite /^sip:headers$/ do
+      headers[:toto].should == ['test1', 'test2']
+      headers['toto'].should == ['test1', 'test2']
+    end
+    invite /^sip:has_header$/ do
+      header?(:toto).should == true
+      header?('toto').should == true
     end
   end
   
   it 'should respond to header[]' do
-    app = TestApp::new
-    app.request = MockRequest::new(:INVITE, 'sip:foo')
+    app = TestMethodsApp::new
+    app.request = MockRequest::new(:INVITE, 'sip:header')
+    app.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+    app.do_request
+  end
+  it 'should respond to headers[]' do
+    app = TestMethodsApp::new
+    app.request = mock_request('INVITE', 'sip:headers')
+    app.request.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    app.do_request
+  end
+  it 'should respond to header?' do
+    app = TestMethodsApp::new
+    app.request = mock_request('INVITE', 'sip:has_header')
+    app.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
     app.do_request
   end
 end

@@ -5,7 +5,7 @@ module Sipatra
 
   module HelperMethods
     def proxy(uri = nil)
-      uri = uri.nil? ? request.getRequestURI() : sipFactory.createURI(uri)
+      uri = uri.nil? ? request.requestURI : sipFactory.createURI(uri)
       request.getProxy().proxyTo(uri)
     end    
     
@@ -16,6 +16,10 @@ module Sipatra
     def headers
       @headers_wrapper ||= HeadersWrapper::new(request)
     end
+    
+    def header?(name)
+      !request.getHeader(name.to_s).nil?
+    end
   end
 
   class Base
@@ -25,7 +29,7 @@ module Sipatra
       puts "DO REQUEST: #{request.method} #{request.requestURI}"
       if handlers = self.class.handlers[request.method]
         handlers.each { |pattern, keys, conditions, block|
-          puts "PATTERN: #{pattern.source}"
+#          puts "PATTERN: #{pattern.source} / #{request.requestURI.to_s}"
           if pattern.match request.requestURI.to_s
             # TODO: use keys and conditions
             instance_eval(&block)          
@@ -65,7 +69,7 @@ module Sipatra
       end
     
       def handler(verb, uri, options={}, &block)
-        puts "Recording handler for #{verb} in #{name}"
+#        puts "Recording handler for #{verb} in #{name}"
 
         method_name = "#{verb}  #{uri}"
         define_method method_name, &block

@@ -10,11 +10,19 @@ module Sipatra
     end    
     
     def header
-      @header_wrapper ||= HeaderWrapper::new(request)
+      @header_wrapper ||= HeadersWrapper::new(request)
     end
 
     def headers
-      @headers_wrapper ||= HeadersWrapper::new(request)
+      @headers_wrapper ||= HeadersWrapper::new(request, true)
+    end
+
+    def address_header
+      @address_header_wrapper ||= HeadersWrapper::new(request, false, true)
+    end
+
+    def address_headers
+      @address_headers_wrapper ||= HeadersWrapper::new(request, true, true)
     end
     
     def header?(name)
@@ -122,24 +130,15 @@ module Sipatra
     #end    
   end
   
-  class HeaderWrapper
-    def initialize(request)
-      @request = request
-    end
-    
-    def [](name)
-      @request.getHeader(name.to_s)
-    end
-  end
-
   class HeadersWrapper
-    def initialize(request)
+    def initialize(request, plural = false, address = false)
       @request = request
-    end
-    
-    def [](name)
-      @request.getHeaders(name.to_s).to_a
-    end
+      (class << self; self; end).class_eval """
+        def [](name)
+          @request.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
+        end 
+      """
+    end 
   end
   
   module Delegator #:nodoc:

@@ -70,6 +70,14 @@ describe 'Sipatra::Base instances' do
       headers[:toto].should == ['test1', 'test2']
       headers['toto'].should == ['test1', 'test2']
     end
+    invite /^sip:address_header$/ do
+      address_header[:toto].should == ['test1', 'test2']
+      address_header['toto'].should == ['test1', 'test2']
+    end
+    invite /^sip:address_headers$/ do
+      address_headers[:toto].should == ['test1', 'test2']
+      address_headers['toto'].should == ['test1', 'test2']
+    end
     invite /^sip:has_header$/ do
       header?(:toto).should == true
       header?('toto').should == true
@@ -86,6 +94,18 @@ describe 'Sipatra::Base instances' do
     app = TestMethodsApp::new
     app.request = mock_request('INVITE', 'sip:headers')
     app.request.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    app.do_request
+  end
+  it 'should respond to address_header[]' do
+    app = TestMethodsApp::new
+    app.request = mock_request('INVITE', 'sip:address_header')
+    app.request.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
+    app.do_request
+  end
+  it 'should respond to address_headers[]' do
+    app = TestMethodsApp::new
+    app.request = mock_request('INVITE', 'sip:address_headers')
+    app.request.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
     app.do_request
   end
   it 'should respond to header?' do

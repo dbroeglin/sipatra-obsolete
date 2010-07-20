@@ -83,19 +83,18 @@ module Sipatra
 
         pattern, keys = compile_uri_pattern(uri)
         ((@handlers ||= {})[verb] ||= []).
-          push([pattern, keys, nil, block]).last # TODO: conditions
-        
+          push([pattern, keys, nil, block]).last # TODO: conditions        
       end        
-    end
-    
-    eigenclass = (class << self; self; end)
-     [:ack, :bye, :cancel, :info, :invite, :message, 
-      :notify, :options, :prack, :publish, :refer, 
-      :register, :subscribe, :update].each do |name|
-      eigenclass.send :define_method, name do |*args, &block|
-        path, opts = *args
-        handler(name.to_s.upcase, path || //, opts || {}, &block)
+
+      [:ack, :bye, :cancel, :info, :invite, :message, 
+       :notify, :options, :prack, :publish, :refer, 
+       :register, :subscribe, :update].each do |name|
+        define_method name do |*args, &block|
+          path, opts = *args
+          handler(name.to_s.upcase, path || //, opts || {}, &block)
+        end
       end
+
     end
     
     reset!

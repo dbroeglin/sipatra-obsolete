@@ -32,26 +32,6 @@ describe 'Sipatra::Base should have handlers for SIP request methods' do
   end   
 end
 
-class MockProxy
-  def proxyTo(uri)
-  end
-end
-
-class MockRequest
-  attr_reader :method, :requestURI
-  alias :getRequestURI :requestURI 
-  
-  def initialize(method, uri)
-    @method, @requestURI = method.to_s.upcase, uri.to_s    
-  end  
-  
-  def proxy
-    MockProxy::new
-  end
-  
-  alias :getProxy :proxy
-end
-
 def mock_request(method, uri)
   request = mock('MockSipRequest')
   request.should_receive(:method).any_number_of_times.and_return(method)
@@ -82,36 +62,76 @@ describe 'Sipatra::Base instances' do
       header?(:toto).should == true
       header?('toto').should == true
     end
+    invite /^sip:send_response$/ do
+      send_response(500)
+      send_response(500, 'Error')
+    end
+    invite /^sip:send_response_block$/ do
+      send_response(500) do |response|
+        response.addHeader('Test1', 'Value1')
+      end
+      send_response(500, 'Error') do |response|
+        response.addHeader('Test2', 'Value2')
+      end
+    end
+  end
+  
+  subject do
+    TestMethodsApp::new
+  end
+  
+  after(:each) do
+    subject.do_request
   end
   
   it 'should respond to header[]' do
-    app = TestMethodsApp::new
-    app.request = MockRequest::new(:INVITE, 'sip:header')
-    app.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
-    app.do_request
+    subject.request = mock_request('INVITE', 'sip:header')
+    subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
   end
+
   it 'should respond to headers[]' do
-    app = TestMethodsApp::new
-    app.request = mock_request('INVITE', 'sip:headers')
-    app.request.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
-    app.do_request
+    subject.request = mock_request('INVITE', 'sip:headers')
+    subject.request.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
   end
+
   it 'should respond to address_header[]' do
-    app = TestMethodsApp::new
-    app.request = mock_request('INVITE', 'sip:address_header')
-    app.request.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
-    app.do_request
+    subject.request = mock_request('INVITE', 'sip:address_header')
+    subject.request.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
   end
+
   it 'should respond to address_headers[]' do
-    app = TestMethodsApp::new
-    app.request = mock_request('INVITE', 'sip:address_headers')
-    app.request.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
-    app.do_request
+    subject.request = mock_request('INVITE', 'sip:address_headers')
+    subject.request.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
   end
+
   it 'should respond to header?' do
-    app = TestMethodsApp::new
-    app.request = mock_request('INVITE', 'sip:has_header')
-    app.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
-    app.do_request
+    subject.request = mock_request('INVITE', 'sip:has_header')
+    subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+  end
+
+  it 'should respond to send_response' do
+    subject.request = mock_request('INVITE', 'sip:send_response')    
+
+    response = mock('SipServletResponse')
+    subject.request.should_receive(:createResponse).with(500).and_return(response)
+    response.should_receive(:send)
+
+    response = mock('SipServletResponse')
+    subject.request.should_receive(:createResponse).with(500, 'Error').and_return(response)
+    response.should_receive(:send)
+  end
+
+  it 'should respond to send_response with a block' do
+    subject.request = mock_request('INVITE', 'sip:send_response_block')
+
+    response = mock('SipServletResponse')
+    subject.request.should_receive(:createResponse).with(500).and_return(response)  
+    response.should_receive(:addHeader).with('Test1', 'Value1')
+    response.should_receive(:send)
+
+    response = mock('SipServletResponse')
+    subject.request.should_receive(:createResponse).with(500, 'Error').and_return(response)
+    response.should_receive(:addHeader).with('Test2', 'Value2')
+    response.should_receive(:send)
   end
 end

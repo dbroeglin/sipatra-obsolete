@@ -13,6 +13,10 @@ invite 'sip:standard@.*' do
     proxy "sip:0123456789@#{request.requestURI.host}"
     puts "VIA    : '#{headers[:Via].join(", ")}'"
     puts "CONTACT: '#{header['Contact']}'"
+    
+    send_response 200, "OK" do |response|
+      response.addHeader('X-Header', 'Foo')
+    end
 end
 
 register do

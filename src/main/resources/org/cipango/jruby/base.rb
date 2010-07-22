@@ -10,23 +10,31 @@ module Sipatra
     end    
     
     def header
-      @header_wrapper ||= HeadersWrapper::new(request)
+      @header_wrapper ||= HeadersWrapper::new(self)
     end
 
     def headers
-      @headers_wrapper ||= HeadersWrapper::new(request, true)
+      @headers_wrapper ||= HeadersWrapper::new(self, true)
     end
 
     def address_header
-      @address_header_wrapper ||= HeadersWrapper::new(request, false, true)
+      @address_header_wrapper ||= HeadersWrapper::new(self, false, true)
     end
 
     def address_headers
-      @address_headers_wrapper ||= HeadersWrapper::new(request, true, true)
+      @address_headers_wrapper ||= HeadersWrapper::new(self, true, true)
     end
     
     def header?(name)
       !request.getHeader(name.to_s).nil?
+    end
+    
+    def send_response(status, msg = nil)
+      response = msg.nil? ? request.createResponse(status) : request.createResponse(status, msg)
+      if block_given?
+        yield response
+      end
+      response.send
     end
   end
 
@@ -37,7 +45,7 @@ module Sipatra
       puts "DO REQUEST: #{request.method} #{request.requestURI}"
       if handlers = self.class.handlers[request.method]
         handlers.each { |pattern, keys, conditions, block|
-#          puts "PATTERN: #{pattern.source} / #{request.requestURI.to_s}"
+          #puts "PATTERN: #{pattern.source} / #{request.requestURI.to_s}"
           if pattern.match request.requestURI.to_s
             # TODO: use keys and conditions
             instance_eval(&block)          
@@ -79,7 +87,7 @@ module Sipatra
       def handler(verb, uri, options={}, &block)
 #        puts "Recording handler for #{verb} in #{name}"
 
-        method_name = "#{verb}  #{uri}"
+        method_name = "#{verb}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\""
         define_method method_name, &block
         unbound_method = instance_method(method_name)
         block =
@@ -117,13 +125,6 @@ module Sipatra
       super(*extensions, &block)
     end
     
-    #def sendResponse(status, reason = nil) 
-    #  if reason.nil?
-    #    request.createResponse(status).send()
-    #  else 
-    #    request.createResponse(status, reason).send()
-    #  end
-    #end
     #
     #def pushRoute(route)
     #  request.pushRoute(sipFactory.createAddress(route))
@@ -131,13 +132,13 @@ module Sipatra
   end
   
   class HeadersWrapper
-    def initialize(request, plural = false, address = false)
-      @request = request
-      (class << self; self; end).class_eval """
+    def initialize(base, plural = false, address = false)
+      @base = base
+      (class << self; self; end).class_eval <<-RUBY
         def [](name)
-          @request.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
+          @base.request.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
         end 
-      """
+      RUBY
     end 
   end
   

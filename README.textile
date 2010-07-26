@@ -57,4 +57,4 @@ In order to use the cipango-jruby-1.0-SNAPSHOT.jar you also need to put those ja
 
 h2. Sample application
 
-A functionnal yet very simple sample application is available at http://github.com/dbroeglin/sipatra-sample-app.
+A functionnal yet very simple "sample application":http://github.com/dbroeglin/sipatra-sample-app is available at 

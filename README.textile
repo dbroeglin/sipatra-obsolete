@@ -1,8 +1,8 @@
 h1. SIPATRA
 
-Sipatra is a simple Sinatra like DSL for SIP Servlets. It's heavily inspired from Sinatra and was adapted only in those areas that were required by differences between the HTTP and SIP protocols.
+Sipatra is a simple Sinatra like Ruby DSL for SIP Servlets. It's heavily inspired from Sinatra and was adapted only in those areas that were required by differences between the HTTP and SIP protocols. Sipatra is written is JRuby and targets SIP Servlet 1.1 compatible application servers
 
-Sipatra is a work in progress.
+Sipatra is a work in progress. The Ruby DSL may change without notice.
 
 h2. Handlers
 
@@ -25,6 +25,10 @@ end
 </pre>
 
 Those handlers have to be put in a file called @WEB-INF/jruby/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@:. Handlers exist for the following SIP methods: ACK, BYE, CANCEL, INFO, INVITE, MESSAGE, NOTIFY, OPTIONS, PRACK, PUBLISH, REFER, REGISTER, SUBSCRIBE, UPDATE (http://en.wikipedia.org/wiki/List_of_SIP_request_methods).
+
+Helper methods like @send_response@ are available to handler writers in order to reduce the amount of code necessary for common tasks.
+
+To use Sipatra in your SIP applications, just add the following declaration to you @WEB-INF/sip.xml@ file together with the dependencies listed below.
 
 <pre>
   <servlet>
@@ -50,3 +54,7 @@ In order to use the cipango-jruby-1.0-SNAPSHOT.jar you also need to put those ja
 * joda-time-1.6.jar
 * joni-1.1.4.jar
 * jruby-1.5.1.jar
+
+h2. Sample application
+
+A functionnal yet very simple sample application is available at [http://github.com/dbroeglin/sipatra-sample-app].

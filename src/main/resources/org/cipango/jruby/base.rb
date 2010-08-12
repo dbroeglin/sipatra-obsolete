@@ -3,7 +3,9 @@ require 'java'
 module Sipatra
   VERSION = '1.0.0'
 
-  module HelperMethods
+  java_import javax.servlet.sip.SipServletResponse
+
+  module HelperMethods  
     def proxy(uri = nil)
       uri = uri.nil? ? request.requestURI : sipFactory.createURI(uri)
       request.getProxy().proxyTo(uri)
@@ -30,11 +32,29 @@ module Sipatra
     end
     
     def send_response(status, msg = nil)
-      response = msg.nil? ? request.createResponse(status) : request.createResponse(status, msg)
+      status_code = convert_status_code(status)
+      args = msg.nil? ? [status_code] : [status_code, msg]
+      response = request.createResponse(*args)
       if block_given?
         yield response
       end
       response.send
+    end
+    
+    private
+    
+    def convert_status_code(symbol_or_int)
+      case symbol_or_int
+      when Integer: return symbol_or_int
+      when Symbol
+        begin
+          SipServletResponse.class_eval("SC_#{symbol_or_int.to_s.upcase}")
+        rescue NameError => e
+          raise ArgumentError, "Unknown status code symbol: '#{symbol_or_int}' (#{e.message})"
+        end
+      else
+        raise ArgumentError, "Status code value should be a Symbol or Int not '#{symbol_or_int.class}'"
+      end
     end
   end
 

@@ -14,9 +14,7 @@ invite 'sip:standard@.*' do
     puts "VIA    : '#{headers[:Via].join(", ")}'"
     puts "CONTACT: '#{header['Contact']}'"
     
-    send_response 200, "OK" do |response|
-      response.addHeader('X-Header', 'Foo')
-    end
+    send_response 200, "OK", 'X-Header' => 'Foo'
 end
 
 register do

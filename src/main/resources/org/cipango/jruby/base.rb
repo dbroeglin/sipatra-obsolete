@@ -31,10 +31,16 @@ module Sipatra
       !request.getHeader(name.to_s).nil?
     end
     
-    def send_response(status, msg = nil)
-      status_code = convert_status_code(status)
-      args = msg.nil? ? [status_code] : [status_code, msg]
-      response = request.createResponse(*args)
+    def send_response(status, *args)
+      create_args = [convert_status_code(status)]
+      create_args << args.shift unless args.empty? || args.first.kind_of?(Hash)
+      response = request.createResponse(*create_args)
+      unless args.empty?
+        raise ArgumentError, "last argument should be a Hash" unless args.first.kind_of? Hash
+        args.first.each_pair do |name, value|
+          response.addHeader(name.to_s, value.to_s)
+        end
+      end
       if block_given?
         yield response
       end

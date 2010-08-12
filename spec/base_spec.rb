@@ -139,8 +139,33 @@ describe Sipatra::Base do
         response.addHeader('Test1', 'Value1')
       end
     end
+
+    it 'should respond to send_response with a Hash' do
+      subject.request = mock_request('INVITE', 'sip:anything')
+
+      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      mock_response.should_receive(:addHeader).with('Test1', '1234')
+      mock_response.should_receive(:send)
+
+      subject.send_response 500, :Test1 => 1234
+    end
+
+    it 'should respond to send_response with a Hash and block' do
+      subject.request = mock_request('INVITE', 'sip:anything')
+
+      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      mock_response.should_receive(:addHeader).with('Test1', 'Value1')
+      mock_response.should_receive(:addHeader).with('Test2', 'Value2')
+      mock_response.should_receive(:send)
+
+      subject.send_response 500, :Test1 => 'Value1' do |response|
+        response.addHeader('Test2', 'Value2')
+      end
+    end
     
     it 'should respond to send_response with a msg and block' do
+      subject.request = mock_request('INVITE', 'sip:anything')
+
       subject.request.should_receive(:createResponse).with(500, 'Error').and_return(mock_response)
       mock_response.should_receive(:addHeader).with('Test2', 'Value2')
       mock_response.should_receive(:send)

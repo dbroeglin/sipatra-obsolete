@@ -22,7 +22,7 @@ register do
 end
 </pre>
 
-Those handlers have to be put in a file called @WEB-INF/jruby/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@:. Handlers exist for the following SIP methods: ACK, BYE, CANCEL, INFO, INVITE, MESSAGE, NOTIFY, OPTIONS, PRACK, PUBLISH, REFER, REGISTER, SUBSCRIBE, UPDATE (http://en.wikipedia.org/wiki/List_of_SIP_request_methods).
+Those handlers have to be put in a file called @WEB-INF/jruby/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@. Handlers exist for the following SIP methods: ACK, BYE, CANCEL, INFO, INVITE, MESSAGE, NOTIFY, OPTIONS, PRACK, PUBLISH, REFER, REGISTER, SUBSCRIBE, UPDATE (http://en.wikipedia.org/wiki/List_of_SIP_request_methods).
 
 Helper methods like @send_response@ are available to handler writers in order to reduce the amount of code necessary for common tasks.
 
@@ -46,4 +46,4 @@ In order to use the cipango-jruby-1.0-SNAPSHOT.jar you also need to put those ja
 
 h2. Sample application
 
-A functionnal yet very simple "sample application":http://github.com/dbroeglin/sipatra-sample-app is available. 
+A very simple, yet functionnal, "sample application":http://github.com/dbroeglin/sipatra-sample-app is available. 

@@ -36,6 +36,28 @@ To use Sipatra in your SIP applications, just add the following declaration to y
   </servlet>
 </pre>
 
+h3. Helper methods
+
+Handlers have access to helper methods which permit to concisely implement common SIP Servlet call patterns.
+
+@send_response@ generates a response and sends it:
+
+<pre>
+send_response :ok
+send_response :not_found, "Number was not found"
+send_response :ok, :Date => Time::now.httpdate
+send_response :ok do |res|
+ res.setHeader("Date", Time::now.httpdate)
+end
+</pre>
+
+@create_address@ creates an address header:
+
+<pre>
+create_address('sip:12345@domain.com')
+create_address('sip:12345@domain.com', :expires => 1234, :display_name => 'Foo')
+</pre>
+
 h2. Dependencies
 
 In order to use the cipango-jruby-1.0-SNAPSHOT.jar you also need to put those jars into your @WEB-INF/lib@ directory.

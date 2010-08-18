@@ -47,6 +47,15 @@ module Sipatra
       response.send
     end
     
+    def create_address(addr, options = {})
+      addr = addr.to_s # TODO: Handle URI instances
+      address = sip_factory.createAddress(addr)
+      address.setExpires(options[:expires]) if options.has_key? :expires
+      address.setDisplayName(options[:display_name]) if options.has_key? :display_name
+      
+      address      
+    end
+    
     private
     
     def convert_status_code(symbol_or_int)

@@ -7,7 +7,7 @@ module Sipatra
 
   module HelperMethods  
     def proxy(uri = nil)
-      uri = uri.nil? ? request.requestURI : sipFactory.createURI(uri)
+      uri = uri.nil? ? request.requestURI : sip_factory.createURI(uri)
       request.getProxy().proxyTo(uri)
     end    
     
@@ -65,7 +65,7 @@ module Sipatra
   end
 
   class Base
-    attr_accessor :sipFactory, :context, :session, :request, :response, :params
+    attr_accessor :sip_factory, :context, :session, :request, :response, :params
 
     def do_request
       puts "DO REQUEST: #{request.method} #{request.requestURI}"
@@ -153,7 +153,7 @@ module Sipatra
     
     #
     #def pushRoute(route)
-    #  request.pushRoute(sipFactory.createAddress(route))
+    #  request.pushRoute(sip_factory.createAddress(route))
     #end    
   end
   

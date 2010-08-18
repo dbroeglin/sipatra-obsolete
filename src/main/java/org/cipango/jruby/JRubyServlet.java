@@ -114,7 +114,7 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 	
 	private void setBindings(Object app, SipServletMessage message) {
 	  _container.callMethod(app, "context=", new Object[] { _servletContext });
-  	_container.callMethod(app, "sipFactory=", new Object[] { _servletContext.getAttribute(SipServlet.SIP_FACTORY) });
+  	_container.callMethod(app, "sip_factory=", new Object[] { _servletContext.getAttribute(SipServlet.SIP_FACTORY) });
   	_container.callMethod(app, "session=", new Object[] { message.getSession() });
 	}
 }

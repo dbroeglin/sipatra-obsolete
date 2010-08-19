@@ -59,7 +59,7 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
     String appPath = getServletContext().getRealPath("/WEB-INF/jruby");
     List<String> loadPaths = new ArrayList<String>();
     
-    loadPaths.add(appPath);    
+    loadPaths.add(appPath);
     _container = new ScriptingContainer();
     _container.getProvider().setLoadPaths(loadPaths);
 		_servletContext = config.getServletContext();

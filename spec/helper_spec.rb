@@ -1,14 +1,16 @@
 require File.dirname(__FILE__) + '/helper'
 
-class TestHelperMethods
+class FakeApp 
   include Sipatra::HelperMethods
 end
 
-
-describe TestHelperMethods do
-
+describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   def mock_address
     @mock_address ||= mock('Address')
+  end
+  
+  before do
+    subject.stub!(:request).and_return(Object::new)
   end
 
   describe "#convert_status_code" do
@@ -47,6 +49,99 @@ describe TestHelperMethods do
       
       subject.create_address('test', :display_name => "display name").should == mock_address
     end
+  end
+  
+  describe "#send_response" do    
+    it 'should raise an ArgumentError when call with an incorrect symbol' do
+      lambda { subject.send_response(:toto) }.should raise_exception(ArgumentError)
+    end
 
+    it 'should create a 404 status code when called with :not_found' do
+      subject.request.should_receive(:createResponse).with(404).and_return(mock_response)  
+      mock_response.should_receive(:send)
+      
+      subject.send_response(:not_found)
+    end
+    
+    it 'should respond to send_response with Integer' do
+      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      mock_response.should_receive(:send)
+
+      subject.send_response(500)
+    end
+    
+    it 'should respond to send_response with a block' do
+      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      mock_response.should_receive(:addHeader).with('Test1', 'Value1')
+      mock_response.should_receive(:send)
+
+      subject.send_response(500) do |response|
+        response.addHeader('Test1', 'Value1')
+      end
+    end
+
+    it 'should respond to send_response with a Hash' do
+      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      mock_response.should_receive(:addHeader).with('Test1', '1234')
+      mock_response.should_receive(:send)
+
+      subject.send_response 500, :Test1 => 1234
+    end
+
+    it 'should respond to send_response with a Hash and block' do
+      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      mock_response.should_receive(:addHeader).with('Test1', 'Value1')
+      mock_response.should_receive(:addHeader).with('Test2', 'Value2')
+      mock_response.should_receive(:send)
+
+      subject.send_response 500, :Test1 => 'Value1' do |response|
+        response.addHeader('Test2', 'Value2')
+      end
+    end
+    
+    it 'should respond to send_response with a msg and block' do
+      subject.request.should_receive(:createResponse).with(500, 'Error').and_return(mock_response)
+      mock_response.should_receive(:addHeader).with('Test2', 'Value2')
+      mock_response.should_receive(:send)
+      
+      subject.send_response(500, 'Error') do |response|
+        response.addHeader('Test2', 'Value2')
+      end      
+    end
+  end
+  
+  it 'should respond to header[]' do
+    subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+    
+    subject.header[:toto].should == 'test1'
+    subject.header['toto'].should == 'test1'
+  end
+  
+  it 'should respond to headers[]' do
+    subject.request.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    
+    subject.headers[:toto].should == ['test1', 'test2']
+    subject.headers['toto'].should == ['test1', 'test2']
+  end
+
+  it 'should respond to address_header[]' do
+    subject.request.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
+    
+    subject.address_header[:toto].should == ['test1', 'test2']
+    subject.address_header['toto'].should == ['test1', 'test2']
+  end
+
+  it 'should respond to address_headers[]' do
+    subject.request.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    
+    subject.address_headers[:toto].should == ['test1', 'test2']
+    subject.address_headers['toto'].should == ['test1', 'test2']
+  end
+
+  it 'should respond to header?' do
+    subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+    
+    subject.header?(:toto).should == true
+    subject.header?('toto').should == true
   end
 end

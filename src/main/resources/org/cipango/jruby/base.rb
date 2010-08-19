@@ -7,6 +7,7 @@ module Sipatra
   java_import javax.servlet.sip.SipServletResponse
 
   class Base
+    include HelperMethods
     attr_accessor :sip_factory, :context, :session, :request, :response, :params
 
     def do_request
@@ -41,6 +42,7 @@ module Sipatra
         @handlers         = {}
       end
         
+      # compiles a URI pattern to handle
       def compile_uri_pattern(uri)
         keys = [] # TODO: Not yet used, shall contain key names
         if uri.respond_to? :to_str
@@ -51,10 +53,9 @@ module Sipatra
           raise TypeError, uri
         end
       end
-    
-      def handler(verb, uri, options={}, &block)
-#        puts "Recording handler for #{verb} in #{name}"
 
+      # adds a handler
+      def handler(verb, uri, options={}, &block)
         method_name = "#{verb}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\""
         define_method method_name, &block
         unbound_method = instance_method(method_name)
@@ -82,8 +83,6 @@ module Sipatra
     end
     
     reset!
-
-    include HelperMethods
   end
   
   class Application < Base    

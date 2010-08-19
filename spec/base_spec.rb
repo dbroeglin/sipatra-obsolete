@@ -1,11 +1,12 @@
 require File.dirname(__FILE__) + '/helper'
 
-describe 'Sipatra::Base subclasses' do
-  class TestApp < Sipatra::Base
-    invite // do
-      proxy
-    end
+class TestApp < Sipatra::Base
+  invite /^sip:test_uri$/ do
+    block_called
   end
+end
+
+describe 'Sipatra::Base subclasses' do
 
   it 'processes requests with do_request' do
     TestApp::new.respond_to?(:do_request).should be_true
@@ -45,136 +46,27 @@ def mock_response
   @mock_response ||= mock('SipServletResponse')
 end
 
-describe Sipatra::Base do
+describe TestApp do
   
-  describe "within blocks" do
-    class TestMethodsApp < Sipatra::Base
-      invite /^sip:header$/ do
-        header[:toto].should == 'test1'
-        header['toto'].should == 'test1'
-      end
-      invite /^sip:headers$/ do
-        headers[:toto].should == ['test1', 'test2']
-        headers['toto'].should == ['test1', 'test2']
-      end
-      invite /^sip:address_header$/ do
-        address_header[:toto].should == ['test1', 'test2']
-        address_header['toto'].should == ['test1', 'test2']
-      end
-      invite /^sip:address_headers$/ do
-        address_headers[:toto].should == ['test1', 'test2']
-        address_headers['toto'].should == ['test1', 'test2']
-      end
-      invite /^sip:has_header$/ do
-        header?(:toto).should == true
-        header?('toto').should == true
-      end
-    end
-
+  describe "when calling do_request" do
     subject do
-      TestMethodsApp::new
+      TestApp::new
     end
   
     after(:each) do
       subject.do_request
     end
   
-    it 'should respond to header[]' do
-      subject.request = mock_request('INVITE', 'sip:header')
-      subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
-    end
+    it "should invoke the handler" do
+      subject.request = mock_request('INVITE', 'sip:test_uri')
 
-    it 'should respond to headers[]' do
-      subject.request = mock_request('INVITE', 'sip:headers')
-      subject.request.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+      subject.should_receive(:block_called)
     end
-
-    it 'should respond to address_header[]' do
-      subject.request = mock_request('INVITE', 'sip:address_header')
-      subject.request.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
-    end
-
-    it 'should respond to address_headers[]' do
-      subject.request = mock_request('INVITE', 'sip:address_headers')
-      subject.request.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
-    end
-
-    it 'should respond to header?' do
-      subject.request = mock_request('INVITE', 'sip:has_header')
-      subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
-    end
-  end
   
-  describe "#send_response" do
-    it 'should raise an ArgumentError when call with an incorrect symbol' do
-      lambda { subject.send_response(:toto) }.should raise_exception(ArgumentError)
+    it "should not invoke the handler" do
+      subject.request = mock_request('INVITE', 'sip:wrong_test_uri')
+
+      subject.should_not_receive(:block_called)
     end
-
-    it 'should create a 404 status code when called with :not_found' do
-      subject.request = mock_request('INVITE', 'sip:anything')
-
-      subject.request.should_receive(:createResponse).with(404).and_return(mock_response)  
-      mock_response.should_receive(:send)
-      
-      subject.send_response(:not_found)
-    end
-    
-    it 'should respond to send_response with Integer' do
-      subject.request = mock_request('INVITE', 'sip:anything')
-
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
-      mock_response.should_receive(:send)
-
-      subject.send_response(500)
-    end
-    
-    it 'should respond to send_response with a block' do
-      subject.request = mock_request('INVITE', 'sip:anything')
-
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
-      mock_response.should_receive(:addHeader).with('Test1', 'Value1')
-      mock_response.should_receive(:send)
-
-      subject.send_response(500) do |response|
-        response.addHeader('Test1', 'Value1')
-      end
-    end
-
-    it 'should respond to send_response with a Hash' do
-      subject.request = mock_request('INVITE', 'sip:anything')
-
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
-      mock_response.should_receive(:addHeader).with('Test1', '1234')
-      mock_response.should_receive(:send)
-
-      subject.send_response 500, :Test1 => 1234
-    end
-
-    it 'should respond to send_response with a Hash and block' do
-      subject.request = mock_request('INVITE', 'sip:anything')
-
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
-      mock_response.should_receive(:addHeader).with('Test1', 'Value1')
-      mock_response.should_receive(:addHeader).with('Test2', 'Value2')
-      mock_response.should_receive(:send)
-
-      subject.send_response 500, :Test1 => 'Value1' do |response|
-        response.addHeader('Test2', 'Value2')
-      end
-    end
-    
-    it 'should respond to send_response with a msg and block' do
-      subject.request = mock_request('INVITE', 'sip:anything')
-
-      subject.request.should_receive(:createResponse).with(500, 'Error').and_return(mock_response)
-      mock_response.should_receive(:addHeader).with('Test2', 'Value2')
-      mock_response.should_receive(:send)
-      
-      subject.send_response(500, 'Error') do |response|
-        response.addHeader('Test2', 'Value2')
-      end      
-    end
-
   end
-
 end

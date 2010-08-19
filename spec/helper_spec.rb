@@ -9,6 +9,14 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     @mock_address ||= mock('Address')
   end
   
+  def mock_proxy
+    @mock_proxy ||= mock('Proxy')
+  end
+  
+  def mock_sip_factory
+    @sip_factory ||= mock('SipFactory')
+  end
+  
   before do
     subject.stub!(:request).and_return(Object::new)
   end
@@ -34,26 +42,25 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   
   describe "#create_address" do
     before do
-      @sip_factory = mock('SipFactory')
-      subject.stub!(:sip_factory => @sip_factory)
+      subject.stub!(:sip_factory => mock_sip_factory)
     end
     
     it "should create a wildcard address" do
-      @sip_factory.should_receive(:createAddress).exactly(2).with('*').and_return(mock_address)
+      mock_sip_factory.should_receive(:createAddress).exactly(2).with('*').and_return(mock_address)
       
       subject.create_address('*').should == mock_address
       subject.create_address(:*).should == mock_address
     end
     
     it "should set expires on the address" do
-      @sip_factory.should_receive(:createAddress).with('test').and_return(mock_address)
+      mock_sip_factory.should_receive(:createAddress).with('test').and_return(mock_address)
       mock_address.should_receive(:setExpires).with(1234)
       
       subject.create_address('test', :expires => 1234).should == mock_address
     end
 
     it "should set displayName on the address" do
-      @sip_factory.should_receive(:createAddress).with('test').and_return(mock_address)
+      mock_sip_factory.should_receive(:createAddress).with('test').and_return(mock_address)
       mock_address.should_receive(:setDisplayName).with("display name")
       
       subject.create_address('test', :display_name => "display name").should == mock_address
@@ -190,4 +197,20 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     subject.add_address_header('toto', 'test2')
   end
   
+  it 'should proxy without URI' do
+    subject.request.should_receive(:requestURI).and_return('the_uri')
+    subject.request.should_receive(:getProxy).and_return(mock_proxy)
+    mock_proxy.should_receive(:proxyTo).with('the_uri')
+    
+    subject.proxy
+  end
+  
+  it 'should proxy with an URI' do
+    subject.request.should_receive(:getProxy).and_return(mock_proxy)
+    subject.should_receive(:sip_factory).and_return(mock_sip_factory)
+    mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
+    mock_proxy.should_receive(:proxyTo).with('the_uri')
+    
+    subject.proxy('the_uri_string')
+  end  
 end

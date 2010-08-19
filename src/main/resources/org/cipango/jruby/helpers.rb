@@ -1,4 +1,23 @@
 module Sipatra
+  class HeadersWrapper
+    def initialize(base, plural = false, address = false)
+      @base = base
+      method_definitions = <<-RUBY
+        def [](name)
+          @base.request.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
+        end
+      RUBY
+      unless plural
+        method_definitions += <<-RUBY
+          def []=(name, value)
+            @base.request.set#{address ? "Address" : ""}Header(name.to_s, value)
+          end 
+        RUBY
+      end
+      class << self; self; end.class_eval method_definitions
+    end 
+  end
+  
   module HelperMethods  
     def proxy(uri = nil)
       uri = uri.nil? ? request.requestURI : sip_factory.createURI(uri)
@@ -21,8 +40,20 @@ module Sipatra
       @address_headers_wrapper ||= HeadersWrapper::new(self, true, true)
     end
     
+    def add_header(name, value)
+      request.addHeader(name.to_s, value)
+    end
+
+    def add_address_header(name, value)
+      request.addAddressHeader(name.to_s, value)
+    end
+    
     def header?(name)
       !request.getHeader(name.to_s).nil?
+    end
+    
+    def remove_header(name)
+      request.removeHeader(name.to_s)
     end
     
     def send_response(status, *args)

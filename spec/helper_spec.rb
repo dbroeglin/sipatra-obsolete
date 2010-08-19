@@ -23,6 +23,15 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
   end
   
+  describe "#remove_header" do
+    it "should remove the header with the given name" do
+      subject.request.should_receive(:removeHeader).exactly(2).with('toto')
+      
+      subject.remove_header(:toto)
+      subject.remove_header('toto')
+    end
+  end
+  
   describe "#create_address" do
     before do
       @sip_factory = mock('SipFactory')
@@ -113,8 +122,15 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   it 'should respond to header[]' do
     subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
     
-    subject.header[:toto].should == 'test1'
+    subject.header[:toto].should  == 'test1'
     subject.header['toto'].should == 'test1'
+  end
+
+  it 'should respond to header[]=' do
+    subject.request.should_receive(:setHeader).exactly(2).with('toto', 'test2')
+    
+    subject.header[:toto]  = 'test2'
+    subject.header['toto'] = 'test2'
   end
   
   it 'should respond to headers[]' do
@@ -124,11 +140,22 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     subject.headers['toto'].should == ['test1', 'test2']
   end
 
+  it 'should not respond to headers[]=' do
+    subject.headers.should_not respond_to('[]=')
+  end
+
   it 'should respond to address_header[]' do
     subject.request.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
     
     subject.address_header[:toto].should == ['test1', 'test2']
     subject.address_header['toto'].should == ['test1', 'test2']
+  end
+
+  it 'should respond to address_header[]=' do
+    subject.request.should_receive(:setAddressHeader).exactly(2).with('toto', 'test2')
+    
+    subject.address_header[:toto]  = 'test2'
+    subject.address_header['toto'] = 'test2'
   end
 
   it 'should respond to address_headers[]' do
@@ -138,10 +165,29 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     subject.address_headers['toto'].should == ['test1', 'test2']
   end
 
+  it 'should not respond to address_headers[]=' do
+    subject.address_headers.should_not respond_to('[]=')
+  end
+
   it 'should respond to header?' do
     subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
     
     subject.header?(:toto).should == true
     subject.header?('toto').should == true
   end
+  
+  it 'should add a header' do
+    subject.request.should_receive(:addHeader).exactly(2).with('toto', 'test2')
+
+    subject.add_header(:toto, 'test2')
+    subject.add_header('toto', 'test2')
+  end
+  
+  it 'should add an address header' do
+    subject.request.should_receive(:addAddressHeader).exactly(2).with('toto', 'test2')
+
+    subject.add_address_header(:toto, 'test2')
+    subject.add_address_header('toto', 'test2')
+  end
+  
 end

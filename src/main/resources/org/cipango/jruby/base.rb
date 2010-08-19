@@ -97,18 +97,7 @@ module Sipatra
     #  request.pushRoute(sip_factory.createAddress(route))
     #end    
   end
-  
-  class HeadersWrapper
-    def initialize(base, plural = false, address = false)
-      @base = base
-      (class << self; self; end).class_eval <<-RUBY
-        def [](name)
-          @base.request.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
-        end 
-      RUBY
-    end 
-  end
-  
+    
   module Delegator #:nodoc:
     def self.delegate(*methods)
       methods.each do |method_name|

@@ -81,6 +81,10 @@ module Sipatra
       address      
     end
     
+    def push_route(route)
+      request.pushRoute(sip_factory.createAddress(route))
+    end    
+    
     private
     
     def convert_status_code(symbol_or_int)

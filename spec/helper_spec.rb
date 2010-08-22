@@ -40,7 +40,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
   end
   
-  describe "#{modify_header}" do
+  describe "#modify_header" do
     # TODO: what if we have multiple headers ?
     it 'should replace a header value with substitution' do
       subject.request.should_receive(:getHeader).with('X-Header').and_return('old_value')
@@ -232,5 +232,13 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     mock_proxy.should_receive(:proxyTo).with('the_uri')
     
     subject.proxy('the_uri_string')
-  end  
+  end 
+  
+  it 'should push a route' do
+    mock_sip_factory.should_receive(:createAddress).with('sip:an_address').and_return(mock_address)
+    subject.should_receive(:sip_factory).and_return(mock_sip_factory)
+    subject.request.should_receive(:pushRoute).with(mock_address)
+    
+    subject.push_route('sip:an_address')
+  end
 end

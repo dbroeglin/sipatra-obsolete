@@ -42,7 +42,7 @@ module Sipatra
         @handlers         = {}
       end
         
-      # compiles a URI pattern to handle
+      # compiles a URI pattern
       def compile_uri_pattern(uri)
         keys = [] # TODO: Not yet used, shall contain key names
         if uri.respond_to? :to_str
@@ -91,11 +91,6 @@ module Sipatra
       Delegator.delegate(*added_methods)
       super(*extensions, &block)
     end
-    
-    #
-    #def pushRoute(route)
-    #  request.pushRoute(sip_factory.createAddress(route))
-    #end    
   end
     
   module Delegator #:nodoc:

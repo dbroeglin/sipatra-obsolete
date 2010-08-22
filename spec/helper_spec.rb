@@ -40,6 +40,26 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
   end
   
+  describe "#{modify_header}" do
+    # TODO: what if we have multiple headers ?
+    it 'should replace a header value with substitution' do
+      subject.request.should_receive(:getHeader).with('X-Header').and_return('old_value')
+      subject.request.should_receive(:setHeader).with('X-Header', 'new_value')
+      
+      subject.modify_header 'X-Header', /^old_(value)$/, 'new_\1'
+    end
+
+    it 'should replace a header value with a block result' do
+      subject.request.should_receive(:getHeader).with('X-Header').and_return('old_value')
+      subject.request.should_receive(:setHeader).with('X-Header', 'new_value')
+      
+      subject.modify_header 'X-Header' do |value|
+        value.should == "old_value"
+        'new_value'
+      end
+    end
+  end
+  
   describe "#create_address" do
     before do
       subject.stub!(:sip_factory => mock_sip_factory)

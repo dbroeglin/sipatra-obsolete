@@ -8,7 +8,13 @@ module Sipatra
   
   class Base
     include HelperMethods
-    attr_accessor :sip_factory, :context, :session, :sip_request, :sip_response, :params, :message
+    attr_accessor :sip_factory, :context, :session, :message
+    alias :sip_request :message 
+    alias :sip_response :message 
+    
+    def set_bindings(*args)
+      @context, @sip_factory, @session, @message = args
+    end
     
     def do_request
       puts "DO REQUEST: #{sip_request.method} #{sip_request.requestURI}"

@@ -91,24 +91,6 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 		Object app = getSipatraApp();
 
 		setBindings(app, request);
-
-		Map<String, Object> params = new LinkedHashMap<String, Object>();
-		for (Enumeration names = request.getParameterNames(); names.hasMoreElements();)
-		{
-			String name = (String) names.nextElement();
-			String[] values = request.getParameterValues(name);
-			if (values.length == 1)
-			{
-				params.put(name, values[0]);
-			}
-			else
-			{
-				params.put(name, values);
-			}
-		}
-		_container.callMethod(app, "sip_request=", new Object[] { request });
-		_container.callMethod(app, "message=", new Object[] { request });
-		_container.callMethod(app, "params=", new Object[] { params });
 		_container.callMethod(app, "do_request");
 	}
 
@@ -119,14 +101,14 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 
 		_container.getVarMap().clear();
 		setBindings(app, response);
-		_container.callMethod(app, "sip_response=", new Object[] { response });
-		_container.callMethod(app, "message=", new Object[] { response });
 		_container.callMethod(app, "do_response");
 	}	
 
 	private void setBindings(Object app, SipServletMessage message) {
-		_container.callMethod(app, "context=", new Object[] { _servletContext });
-		_container.callMethod(app, "sip_factory=", new Object[] { _servletContext.getAttribute(SipServlet.SIP_FACTORY) });
-		_container.callMethod(app, "session=", new Object[] { message.getSession() });
+		_container.callMethod(app, "set_bindings", new Object[] { 
+		  _servletContext,  
+		  _servletContext.getAttribute(SipServlet.SIP_FACTORY), 
+		  message.getSession(), 
+		  message});
 	}
 }

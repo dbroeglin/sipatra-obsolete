@@ -58,13 +58,13 @@ describe TestApp do
     end
   
     it "should invoke the handler" do
-      subject.sip_request = mock_request('INVITE', 'sip:test_uri')
+      subject.message = mock_request('INVITE', 'sip:test_uri')
 
       subject.should_receive(:block_called)
     end
   
     it "should not invoke the handler" do
-      subject.sip_request = mock_request('INVITE', 'sip:wrong_test_uri')
+      subject.message = mock_request('INVITE', 'sip:wrong_test_uri')
 
       subject.should_not_receive(:block_called)
     end

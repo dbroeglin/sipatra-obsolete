@@ -42,10 +42,10 @@ import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
  */
 public class JRubyServlet extends SipServlet //implements ResourceConnector
 {
-  private ScriptingContainer _container;
+	private ScriptingContainer _container;
 	private ServletContext _servletContext;
 
-  /**
+	/**
 	 * Initialize the jrubyServlet.
 	 * 
 	 * @throws ServletException
@@ -55,34 +55,44 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
-    
-    String appPath = getServletContext().getRealPath("/WEB-INF/jruby");
-    List<String> loadPaths = new ArrayList<String>();
-    
-    loadPaths.add(appPath);
-    _container = new ScriptingContainer();
-    _container.getProvider().setLoadPaths(loadPaths);
+
+		String appPath = getServletContext().getRealPath("/WEB-INF/jruby");
+		List<String> loadPaths = new ArrayList<String>();
+
+		loadPaths.add(appPath);
+		_container = new ScriptingContainer();
+		_container.getProvider().setLoadPaths(loadPaths);
 		_servletContext = config.getServletContext();
-		
+
 		// TODO: derive it from the servlets package name
 		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/jruby/base.rb");
 		_container.runScriptlet(PathType.ABSOLUTE, appPath + "/application.rb");
 		
+//		File file = new File("scripts/");
+//		if(file.isDirectory())
+//		{
+//			File[] list = file.listFiles();
+//			for(File f: list)
+//			{
+//				_container.runScriptlet(PathType.ABSOLUTE, f.getAbsolutePath());
+//			}
+//		}
+
 	}
 
-  private Object getSipatraApp() {
-    return _container.runScriptlet("Sipatra::Application::new");
-  }
+	private Object getSipatraApp() {
+		return _container.runScriptlet("Sipatra::Application::new");
+	}
 
 	@Override
 	public void doRequest(SipServletRequest request) throws IOException
 	{
-    _container.getVarMap().clear();
-     Object app = getSipatraApp();
-  
-    setBindings(app, request);
-    
-    Map<String, Object> params = new LinkedHashMap<String, Object>();
+		_container.getVarMap().clear();
+		Object app = getSipatraApp();
+
+		setBindings(app, request);
+
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
 		for (Enumeration names = request.getParameterNames(); names.hasMoreElements();)
 		{
 			String name = (String) names.nextElement();
@@ -96,25 +106,27 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 				params.put(name, values);
 			}
 		}
-	  _container.callMethod(app, "request=", new Object[] { request });
-	  _container.callMethod(app, "params=", new Object[] { params });
-	  _container.callMethod(app, "do_request");
+		_container.callMethod(app, "sip_request=", new Object[] { request });
+		_container.callMethod(app, "message=", new Object[] { request });
+		_container.callMethod(app, "params=", new Object[] { params });
+		_container.callMethod(app, "do_request");
 	}
-	
+
 	@Override
 	public void doResponse(SipServletResponse response) throws IOException
 	{
-    Object app = getSipatraApp();
-    
-    _container.getVarMap().clear();
-    setBindings(app, response);
-	  _container.callMethod(app, "response=", new Object[] { response });
-	  _container.callMethod(app, "do_response");
+		Object app = getSipatraApp();
+
+		_container.getVarMap().clear();
+		setBindings(app, response);
+		_container.callMethod(app, "sip_response=", new Object[] { response });
+		_container.callMethod(app, "message=", new Object[] { response });
+		_container.callMethod(app, "do_response");
 	}	
-	
+
 	private void setBindings(Object app, SipServletMessage message) {
-	  _container.callMethod(app, "context=", new Object[] { _servletContext });
-  	_container.callMethod(app, "sip_factory=", new Object[] { _servletContext.getAttribute(SipServlet.SIP_FACTORY) });
-  	_container.callMethod(app, "session=", new Object[] { message.getSession() });
+		_container.callMethod(app, "context=", new Object[] { _servletContext });
+		_container.callMethod(app, "sip_factory=", new Object[] { _servletContext.getAttribute(SipServlet.SIP_FACTORY) });
+		_container.callMethod(app, "session=", new Object[] { message.getSession() });
 	}
 }

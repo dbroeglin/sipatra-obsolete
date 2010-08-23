@@ -20,11 +20,11 @@ end
 describe 'Sipatra::Base should have handlers for SIP request methods' do
   [:ack, :bye, :cancel, :info, :invite, :message, 
     :notify, :options, :prack, :publish, :refer, 
-    :register, :subscribe, :update].each do |name|
+    :register, :subscribe, :update, :request].each do |name|
     it "should accept method handler #{name}" do
       Sipatra::Base.respond_to?(name).should be_true
     end
-  end 
+  end
   
   it "passes the subclass to configure blocks" do
     ref = nil
@@ -58,13 +58,13 @@ describe TestApp do
     end
   
     it "should invoke the handler" do
-      subject.request = mock_request('INVITE', 'sip:test_uri')
+      subject.sip_request = mock_request('INVITE', 'sip:test_uri')
 
       subject.should_receive(:block_called)
     end
   
     it "should not invoke the handler" do
-      subject.request = mock_request('INVITE', 'sip:wrong_test_uri')
+      subject.sip_request = mock_request('INVITE', 'sip:wrong_test_uri')
 
       subject.should_not_receive(:block_called)
     end

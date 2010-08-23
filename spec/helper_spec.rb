@@ -18,9 +18,10 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   before do
-    subject.stub!(:request).and_return(Object::new)
+    subject.stub!(:sip_request).and_return(Object::new)
+    subject.stub!(:message).and_return(Object::new)
   end
-
+  
   describe "#convert_status_code" do
     it "should convert Integer to an Integer" do
       subject.send(:convert_status_code, 400).should be_kind_of(Integer)
@@ -33,7 +34,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   
   describe "#remove_header" do
     it "should remove the header with the given name" do
-      subject.request.should_receive(:removeHeader).exactly(2).with('toto')
+      subject.message.should_receive(:removeHeader).exactly(2).with('toto')
       
       subject.remove_header(:toto)
       subject.remove_header('toto')
@@ -43,15 +44,15 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   describe "#modify_header" do
     # TODO: what if we have multiple headers ?
     it 'should replace a header value with substitution' do
-      subject.request.should_receive(:getHeader).with('X-Header').and_return('old_value')
-      subject.request.should_receive(:setHeader).with('X-Header', 'new_value')
+      subject.message.should_receive(:getHeaders).with('X-Header').and_return('old_value')
+      subject.message.should_receive(:setHeader).with('X-Header', 'new_value')
       
       subject.modify_header 'X-Header', /^old_(value)$/, 'new_\1'
     end
-
+    
     it 'should replace a header value with a block result' do
-      subject.request.should_receive(:getHeader).with('X-Header').and_return('old_value')
-      subject.request.should_receive(:setHeader).with('X-Header', 'new_value')
+      subject.message.should_receive(:getHeader).with('X-Header').and_return('old_value')
+      subject.message.should_receive(:setHeader).with('X-Header', 'new_value')
       
       subject.modify_header 'X-Header' do |value|
         value.should == "old_value"
@@ -78,7 +79,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
       
       subject.create_address('test', :expires => 1234).should == mock_address
     end
-
+    
     it "should set displayName on the address" do
       mock_sip_factory.should_receive(:createAddress).with('test').and_return(mock_address)
       mock_address.should_receive(:setDisplayName).with("display name")
@@ -91,52 +92,52 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     it 'should raise an ArgumentError when call with an incorrect symbol' do
       lambda { subject.send_response(:toto) }.should raise_exception(ArgumentError)
     end
-
+    
     it 'should create a 404 status code when called with :not_found' do
-      subject.request.should_receive(:createResponse).with(404).and_return(mock_response)  
+      subject.sip_request.should_receive(:createResponse).with(404).and_return(mock_response)  
       mock_response.should_receive(:send)
       
       subject.send_response(:not_found)
     end
     
     it 'should respond to send_response with Integer' do
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:send)
-
+      
       subject.send_response(500)
     end
     
     it 'should respond to send_response with a block' do
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:addHeader).with('Test1', 'Value1')
       mock_response.should_receive(:send)
-
+      
       subject.send_response(500) do |response|
         response.addHeader('Test1', 'Value1')
       end
     end
-
+    
     it 'should respond to send_response with a Hash' do
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:addHeader).with('Test1', '1234')
       mock_response.should_receive(:send)
-
+      
       subject.send_response 500, :Test1 => 1234
     end
-
+    
     it 'should respond to send_response with a Hash and block' do
-      subject.request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:addHeader).with('Test1', 'Value1')
       mock_response.should_receive(:addHeader).with('Test2', 'Value2')
       mock_response.should_receive(:send)
-
+      
       subject.send_response 500, :Test1 => 'Value1' do |response|
         response.addHeader('Test2', 'Value2')
       end
     end
     
     it 'should respond to send_response with a msg and block' do
-      subject.request.should_receive(:createResponse).with(500, 'Error').and_return(mock_response)
+      subject.sip_request.should_receive(:createResponse).with(500, 'Error').and_return(mock_response)
       mock_response.should_receive(:addHeader).with('Test2', 'Value2')
       mock_response.should_receive(:send)
       
@@ -147,86 +148,86 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   it 'should respond to header[]' do
-    subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+    subject.message.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
     
     subject.header[:toto].should  == 'test1'
     subject.header['toto'].should == 'test1'
   end
-
+  
   it 'should respond to header[]=' do
-    subject.request.should_receive(:setHeader).exactly(2).with('toto', 'test2')
+    subject.message.should_receive(:setHeader).exactly(2).with('toto', 'test2')
     
     subject.header[:toto]  = 'test2'
     subject.header['toto'] = 'test2'
   end
   
   it 'should respond to headers[]' do
-    subject.request.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    subject.message.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
     
     subject.headers[:toto].should == ['test1', 'test2']
     subject.headers['toto'].should == ['test1', 'test2']
   end
-
+  
   it 'should not respond to headers[]=' do
     subject.headers.should_not respond_to('[]=')
   end
-
+  
   it 'should respond to address_header[]' do
-    subject.request.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
+    subject.message.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
     
     subject.address_header[:toto].should == ['test1', 'test2']
     subject.address_header['toto'].should == ['test1', 'test2']
   end
-
+  
   it 'should respond to address_header[]=' do
-    subject.request.should_receive(:setAddressHeader).exactly(2).with('toto', 'test2')
+    subject.message.should_receive(:setAddressHeader).exactly(2).with('toto', 'test2')
     
     subject.address_header[:toto]  = 'test2'
     subject.address_header['toto'] = 'test2'
   end
-
+  
   it 'should respond to address_headers[]' do
-    subject.request.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    subject.message.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
     
     subject.address_headers[:toto].should == ['test1', 'test2']
     subject.address_headers['toto'].should == ['test1', 'test2']
   end
-
+  
   it 'should not respond to address_headers[]=' do
     subject.address_headers.should_not respond_to('[]=')
   end
-
+  
   it 'should respond to header?' do
-    subject.request.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+    subject.message.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
     
     subject.header?(:toto).should == true
     subject.header?('toto').should == true
   end
   
   it 'should add a header' do
-    subject.request.should_receive(:addHeader).exactly(2).with('toto', 'test2')
-
+    subject.message.should_receive(:addHeader).exactly(2).with('toto', 'test2')
+    
     subject.add_header(:toto, 'test2')
     subject.add_header('toto', 'test2')
   end
   
   it 'should add an address header' do
-    subject.request.should_receive(:addAddressHeader).exactly(2).with('toto', 'test2')
-
+    subject.message.should_receive(:addAddressHeader).exactly(2).with('toto', 'test2')
+    
     subject.add_address_header(:toto, 'test2')
     subject.add_address_header('toto', 'test2')
   end
   
   it 'should proxy without URI' do
-    subject.request.should_receive(:requestURI).and_return('the_uri')
-    subject.request.should_receive(:getProxy).and_return(mock_proxy)
+    subject.sip_request.should_receive(:requestURI).and_return('the_uri')
+    subject.sip_request.should_receive(:getProxy).and_return(mock_proxy)
     mock_proxy.should_receive(:proxyTo).with('the_uri')
     
     subject.proxy
   end
   
   it 'should proxy with an URI' do
-    subject.request.should_receive(:getProxy).and_return(mock_proxy)
+    subject.sip_request.should_receive(:getProxy).and_return(mock_proxy)
     subject.should_receive(:sip_factory).and_return(mock_sip_factory)
     mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
     mock_proxy.should_receive(:proxyTo).with('the_uri')
@@ -237,7 +238,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   it 'should push a route' do
     mock_sip_factory.should_receive(:createAddress).with('sip:an_address').and_return(mock_address)
     subject.should_receive(:sip_factory).and_return(mock_sip_factory)
-    subject.request.should_receive(:pushRoute).with(mock_address)
+    subject.sip_request.should_receive(:pushRoute).with(mock_address)
     
     subject.push_route('sip:an_address')
   end

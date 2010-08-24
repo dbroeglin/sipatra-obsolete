@@ -183,8 +183,16 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     subject.headers['toto'].should == ['test1', 'test2']
   end
   
-  it 'should not respond to headers[]=' do
-    subject.headers.should_not respond_to('[]=')
+  it 'should respond to headers[]=' do
+    values = ['foo', :bar]
+    subject.message.should_receive(:removeHeader).with('toto')
+    values.each { |value| subject.message.should_receive(:addHeader).with('toto', value.to_s) }
+    subject.message.should_receive(:removeHeader).with('toto')
+    values.each { |value| subject.message.should_receive(:addHeader).with('toto', value.to_s) }
+    
+    
+    subject.headers[:toto] = values
+    subject.headers['toto'] = values
   end
   
   it 'should respond to address_header[]' do
@@ -209,7 +217,15 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   it 'should not respond to address_headers[]=' do
-    subject.address_headers.should_not respond_to('[]=')
+    values = ['foo', :bar]
+    subject.message.should_receive(:removeAddressHeader).with('toto')
+    values.each { |value| subject.message.should_receive(:addAddressHeader).with('toto', value.to_s) }
+    subject.message.should_receive(:removeAddressHeader).with('toto')
+    values.each { |value| subject.message.should_receive(:addAddressHeader).with('toto', value.to_s) }
+    
+    
+    subject.address_headers[:toto] = values
+    subject.address_headers['toto'] = values
   end
   
   it 'should respond to header?' do

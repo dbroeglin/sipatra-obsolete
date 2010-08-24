@@ -52,24 +52,20 @@ module Sipatra
         !message.getHeader(name.to_s).nil?
       end
       
-      def modify_header(header_name, regexp, new_value)
+      def modify_header(header_name, pattern = nil, new_value = nil)
         #FIXME: "JAVA" Code
-        pattern = Regexp.new(/^#{regexp}$/)
-        headers[header_name].each do |header_value|
-          matchvalue = pattern.match header_value
-          if !matchvalue.nil?
-            array = matchvalue.to_a
-            #squeeze first value
-            array.shift
-            i = 1
-            array.each do |elem|
-              new_value["$#{i}"] = elem
-              i = i + 1
-            end
-            #No effects : (wrong ruby way?)
-            header_value = new_value
+        if pattern
+          pattern = Regexp.new(/^#{pattern}$/) unless pattern.kind_of? Regexp
+          values = headers[header_name].map do |value|
+            value.gsub(pattern, new_value)
+          end
+        else
+          values = headers[header_name].map do |value|
+            yield value
           end
         end
+        message.removeHeader(header_name)
+        values.each { |value| message.addHeader(header_name, value) }        
       end
       
       def remove_header(name)

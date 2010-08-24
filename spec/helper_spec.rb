@@ -44,20 +44,35 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   describe "#modify_header" do
     # TODO: what if we have multiple headers ?
     it 'should replace a header value with substitution' do
-      subject.message.should_receive(:getHeaders).with('X-Header').and_return('old_value')
-      subject.message.should_receive(:setHeader).with('X-Header', 'new_value')
+      subject.message.should_receive(:getHeaders).with('X-Header').and_return(['old_value'])
+      subject.message.should_receive(:removeHeader).with('X-Header')
+      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
       
       subject.modify_header 'X-Header', /^old_(value)$/, 'new_\1'
     end
     
-    it 'should replace a header value with a block result' do
-      subject.message.should_receive(:getHeader).with('X-Header').and_return('old_value')
-      subject.message.should_receive(:setHeader).with('X-Header', 'new_value')
+    it 'should replace multiple headers with substitution' do
+      subject.message.should_receive(:getHeaders).with('X-Header').and_return(['old_value', 'old_foo'])
+      subject.message.should_receive(:removeHeader).with('X-Header')
+      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
+      subject.message.should_receive(:addHeader).with('X-Header', 'new_foo')
       
+      subject.modify_header 'X-Header', /^old_(.*)$/, 'new_\1'
+    end
+    
+    it 'should replace a header value with a block result' do
+      subject.message.should_receive(:getHeaders).with('X-Header').and_return(['old_value', 'old_value'])
+      subject.message.should_receive(:removeHeader).with('X-Header')
+      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
+      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
+      
+      i = 0
       subject.modify_header 'X-Header' do |value|
         value.should == "old_value"
+        i += 1
         'new_value'
       end
+      i.should == 2      
     end
   end
   

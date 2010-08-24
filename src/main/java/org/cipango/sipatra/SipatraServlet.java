@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.jruby;
+package org.cipango.sipatra;
 
 import java.io.IOException;
 import java.io.File;
@@ -38,9 +38,9 @@ import org.jruby.embed.ScriptingContainer;
 import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
 
 /**
- *
+ * @author Dominique Broeglin <dominique.broeglin@gmail.com>
  */
-public class JRubyServlet extends SipServlet //implements ResourceConnector
+public class SipatraServlet extends SipServlet 
 {
 	private ScriptingContainer _container;
 	private ServletContext _servletContext;
@@ -56,7 +56,7 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 	{
 		super.init(config);
 
-		String appPath = getServletContext().getRealPath("/WEB-INF/jruby");
+		String appPath = getServletContext().getRealPath("/WEB-INF/sipatra");
 		List<String> loadPaths = new ArrayList<String>();
 
 		loadPaths.add(appPath);
@@ -65,18 +65,8 @@ public class JRubyServlet extends SipServlet //implements ResourceConnector
 		_servletContext = config.getServletContext();
 
 		// TODO: derive it from the servlets package name
-		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/jruby/base.rb");
+		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/sipatra/base.rb");
 		_container.runScriptlet(PathType.ABSOLUTE, appPath + "/application.rb");
-		
-//		File file = new File("scripts/");
-//		if(file.isDirectory())
-//		{
-//			File[] list = file.listFiles();
-//			for(File f: list)
-//			{
-//				_container.runScriptlet(PathType.ABSOLUTE, f.getAbsolutePath());
-//			}
-//		}
 
 	}
 

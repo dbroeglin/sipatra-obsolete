@@ -1,5 +1,5 @@
 require 'java'
-require 'org/cipango/jruby/helpers'
+require 'org/cipango/sipatra/helpers'
 
 module Sipatra
   VERSION = '1.0.0'
@@ -9,24 +9,22 @@ module Sipatra
   class Base
     include HelperMethods
     attr_accessor :sip_factory, :context, :session, :message
-    alias :sip_request :message 
-    alias :sip_response :message 
     
     def set_bindings(*args)
       @context, @sip_factory, @session, @message = args
     end
     
     def do_request
-      puts "DO REQUEST: #{sip_request.method} #{sip_request.requestURI}"
-      processed = process_handler(self.class.req_handlers, sip_request.method)
+      puts "DO REQUEST: #{message.method} #{message.requestURI}"
+      processed = process_handler(self.class.req_handlers, message.method)
       if !processed
         process_handler(self.class.req_handlers, "REQUEST")
       end
     end
     
     def do_response
-      puts "DO RESPONSE: #{sip_response.status} #{sip_response.method}"
-      processed = process_handler(self.class.resp_handlers, sip_response.method)
+      puts "DO RESPONSE: #{message.status} #{message.method}"
+      processed = process_handler(self.class.resp_handlers, message.method)
       if !processed
         process_handler(self.class.resp_handlers, "ALL")
       end

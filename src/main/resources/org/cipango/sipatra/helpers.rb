@@ -28,8 +28,8 @@ module Sipatra
     
     module HelperMethods  
       def proxy(uri = nil)
-        uri = uri.nil? ? sip_request.requestURI : sip_factory.createURI(uri)
-        sip_request.getProxy().proxyTo(uri)
+        uri = uri.nil? ? message.requestURI : sip_factory.createURI(uri)
+        message.getProxy().proxyTo(uri)
       end    
       
       def header
@@ -81,7 +81,7 @@ module Sipatra
       def send_response(status, *args)
         create_args = [convert_status_code(status)]
         create_args << args.shift unless args.empty? || args.first.kind_of?(Hash)
-        response = sip_request.createResponse(*create_args)
+        response = message.createResponse(*create_args)
         unless args.empty?
           raise ArgumentError, "last argument should be a Hash" unless args.first.kind_of? Hash
           args.first.each_pair do |name, value|
@@ -104,7 +104,7 @@ module Sipatra
       end
       
       def push_route(route)
-        sip_request.pushRoute(sip_factory.createAddress(route))
+        message.pushRoute(sip_factory.createAddress(route))
       end    
       
       private

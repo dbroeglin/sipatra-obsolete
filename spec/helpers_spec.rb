@@ -18,7 +18,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   before do
-    subject.stub!(:sip_request).and_return(Object::new)
+    subject.stub!(:message).and_return(Object::new)
     subject.stub!(:message).and_return(Object::new)
   end
   
@@ -110,21 +110,21 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
     
     it 'should create a 404 status code when called with :not_found' do
-      subject.sip_request.should_receive(:createResponse).with(404).and_return(mock_response)  
+      subject.message.should_receive(:createResponse).with(404).and_return(mock_response)  
       mock_response.should_receive(:send)
       
       subject.send_response(:not_found)
     end
     
     it 'should respond to send_response with Integer' do
-      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.message.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:send)
       
       subject.send_response(500)
     end
     
     it 'should respond to send_response with a block' do
-      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.message.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:addHeader).with('Test1', 'Value1')
       mock_response.should_receive(:send)
       
@@ -134,7 +134,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
     
     it 'should respond to send_response with a Hash' do
-      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.message.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:addHeader).with('Test1', '1234')
       mock_response.should_receive(:send)
       
@@ -142,7 +142,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
     
     it 'should respond to send_response with a Hash and block' do
-      subject.sip_request.should_receive(:createResponse).with(500).and_return(mock_response)  
+      subject.message.should_receive(:createResponse).with(500).and_return(mock_response)  
       mock_response.should_receive(:addHeader).with('Test1', 'Value1')
       mock_response.should_receive(:addHeader).with('Test2', 'Value2')
       mock_response.should_receive(:send)
@@ -153,7 +153,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
     
     it 'should respond to send_response with a msg and block' do
-      subject.sip_request.should_receive(:createResponse).with(500, 'Error').and_return(mock_response)
+      subject.message.should_receive(:createResponse).with(500, 'Error').and_return(mock_response)
       mock_response.should_receive(:addHeader).with('Test2', 'Value2')
       mock_response.should_receive(:send)
       
@@ -251,15 +251,15 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   it 'should proxy without URI' do
-    subject.sip_request.should_receive(:requestURI).and_return('the_uri')
-    subject.sip_request.should_receive(:getProxy).and_return(mock_proxy)
+    subject.message.should_receive(:requestURI).and_return('the_uri')
+    subject.message.should_receive(:getProxy).and_return(mock_proxy)
     mock_proxy.should_receive(:proxyTo).with('the_uri')
     
     subject.proxy
   end
   
   it 'should proxy with an URI' do
-    subject.sip_request.should_receive(:getProxy).and_return(mock_proxy)
+    subject.message.should_receive(:getProxy).and_return(mock_proxy)
     subject.should_receive(:sip_factory).and_return(mock_sip_factory)
     mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
     mock_proxy.should_receive(:proxyTo).with('the_uri')
@@ -270,7 +270,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   it 'should push a route' do
     mock_sip_factory.should_receive(:createAddress).with('sip:an_address').and_return(mock_address)
     subject.should_receive(:sip_factory).and_return(mock_sip_factory)
-    subject.sip_request.should_receive(:pushRoute).with(mock_address)
+    subject.message.should_receive(:pushRoute).with(mock_address)
     
     subject.push_route('sip:an_address')
   end

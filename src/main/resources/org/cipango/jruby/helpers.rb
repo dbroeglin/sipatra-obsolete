@@ -1,16 +1,24 @@
 module Sipatra
   class HeadersWrapper
-    def initialize(base, plural = false, address = false)
-      @base = base
+    def initialize(app, plural = false, address = false)
+      @app = app
       method_definitions = <<-RUBY
         def [](name)
-          @base.message.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
+          @app.message.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
         end
       RUBY
-      unless plural
+      if plural
+        method_definitions += <<-RUBY
+          def []=(name, values)
+            name = name.to_s
+            @app.message.remove#{address ? "Address" : ""}Header(name)
+            values.each { |value| @app.message.add#{address ? "Address" : ""}Header(name, value.to_s) }
+          end 
+        RUBY
+      else
         method_definitions += <<-RUBY
           def []=(name, value)
-            @base.message.set#{address ? "Address" : ""}Header(name.to_s, value)
+            @app.message.set#{address ? "Address" : ""}Header(name.to_s, value)
           end 
         RUBY
       end

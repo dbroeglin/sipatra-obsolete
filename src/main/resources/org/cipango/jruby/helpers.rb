@@ -64,16 +64,14 @@ module Sipatra
         #FIXME: "JAVA" Code
         if pattern
           pattern = Regexp.new(/^#{pattern}$/) unless pattern.kind_of? Regexp
-          values = headers[header_name].map do |value|
+          headers[header_name] = headers[header_name].map do |value|
             value.gsub(pattern, new_value)
           end
         else
-          values = headers[header_name].map do |value|
+          headers[header_name] = headers[header_name].map do |value|
             yield value
           end
         end
-        message.removeHeader(header_name)
-        values.each { |value| message.addHeader(header_name, value) }        
       end
       
       def remove_header(name)

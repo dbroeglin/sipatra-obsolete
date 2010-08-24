@@ -34,7 +34,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   
   describe "#remove_header" do
     it "should remove the header with the given name" do
-      subject.message.should_receive(:removeHeader).exactly(2).with('toto')
+      subject.message.should_receive(:removeHeader).twice.with('toto')
       
       subject.remove_header(:toto)
       subject.remove_header('toto')
@@ -44,27 +44,28 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   describe "#modify_header" do
     # TODO: what if we have multiple headers ?
     it 'should replace a header value with substitution' do
-      subject.message.should_receive(:getHeaders).with('X-Header').and_return(['old_value'])
-      subject.message.should_receive(:removeHeader).with('X-Header')
-      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
+      mock_headers = mock('HeadersWrapper')
+      subject.should_receive(:headers).twice.and_return(mock_headers)
+      mock_headers.should_receive(:"[]").with('X-Header').and_return(['old_value'])
+      mock_headers.should_receive(:"[]=").with('X-Header', ['new_value'])
       
       subject.modify_header 'X-Header', /^old_(value)$/, 'new_\1'
     end
     
     it 'should replace multiple headers with substitution' do
-      subject.message.should_receive(:getHeaders).with('X-Header').and_return(['old_value', 'old_foo'])
-      subject.message.should_receive(:removeHeader).with('X-Header')
-      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
-      subject.message.should_receive(:addHeader).with('X-Header', 'new_foo')
+      mock_headers = mock('HeadersWrapper')
+      subject.should_receive(:headers).twice.and_return(mock_headers)
+      mock_headers.should_receive(:"[]").with('X-Header').and_return(['old_value', 'old_foo'])
+      mock_headers.should_receive(:"[]=").with('X-Header', ['new_value', 'new_foo'])
       
       subject.modify_header 'X-Header', /^old_(.*)$/, 'new_\1'
     end
     
     it 'should replace a header value with a block result' do
-      subject.message.should_receive(:getHeaders).with('X-Header').and_return(['old_value', 'old_value'])
-      subject.message.should_receive(:removeHeader).with('X-Header')
-      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
-      subject.message.should_receive(:addHeader).with('X-Header', 'new_value')
+      mock_headers = mock('HeadersWrapper')
+      subject.should_receive(:headers).twice.and_return(mock_headers)
+      mock_headers.should_receive(:"[]").with('X-Header').and_return(['old_value', 'old_value'])
+      mock_headers.should_receive(:"[]=").with('X-Header', ['new_value', 'new_value'])
       
       i = 0
       subject.modify_header 'X-Header' do |value|
@@ -82,7 +83,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     end
     
     it "should create a wildcard address" do
-      mock_sip_factory.should_receive(:createAddress).exactly(2).with('*').and_return(mock_address)
+      mock_sip_factory.should_receive(:createAddress).twice.with('*').and_return(mock_address)
       
       subject.create_address('*').should == mock_address
       subject.create_address(:*).should == mock_address
@@ -163,21 +164,21 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   it 'should respond to header[]' do
-    subject.message.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+    subject.message.should_receive(:getHeader).twice.with('toto').and_return('test1')
     
     subject.header[:toto].should  == 'test1'
     subject.header['toto'].should == 'test1'
   end
   
   it 'should respond to header[]=' do
-    subject.message.should_receive(:setHeader).exactly(2).with('toto', 'test2')
+    subject.message.should_receive(:setHeader).twice.with('toto', 'test2')
     
     subject.header[:toto]  = 'test2'
     subject.header['toto'] = 'test2'
   end
   
   it 'should respond to headers[]' do
-    subject.message.should_receive(:getHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    subject.message.should_receive(:getHeaders).twice.with('toto').and_return(['test1', 'test2'])
     
     subject.headers[:toto].should == ['test1', 'test2']
     subject.headers['toto'].should == ['test1', 'test2']
@@ -196,21 +197,21 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   it 'should respond to address_header[]' do
-    subject.message.should_receive(:getAddressHeader).exactly(2).with('toto').and_return(['test1', 'test2'])
+    subject.message.should_receive(:getAddressHeader).twice.with('toto').and_return(['test1', 'test2'])
     
     subject.address_header[:toto].should == ['test1', 'test2']
     subject.address_header['toto'].should == ['test1', 'test2']
   end
   
   it 'should respond to address_header[]=' do
-    subject.message.should_receive(:setAddressHeader).exactly(2).with('toto', 'test2')
+    subject.message.should_receive(:setAddressHeader).twice.with('toto', 'test2')
     
     subject.address_header[:toto]  = 'test2'
     subject.address_header['toto'] = 'test2'
   end
   
   it 'should respond to address_headers[]' do
-    subject.message.should_receive(:getAddressHeaders).exactly(2).with('toto').and_return(['test1', 'test2'])
+    subject.message.should_receive(:getAddressHeaders).twice.with('toto').and_return(['test1', 'test2'])
     
     subject.address_headers[:toto].should == ['test1', 'test2']
     subject.address_headers['toto'].should == ['test1', 'test2']
@@ -229,21 +230,21 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   it 'should respond to header?' do
-    subject.message.should_receive(:getHeader).exactly(2).with('toto').and_return('test1')
+    subject.message.should_receive(:getHeader).twice.with('toto').and_return('test1')
     
     subject.header?(:toto).should == true
     subject.header?('toto').should == true
   end
   
   it 'should add a header' do
-    subject.message.should_receive(:addHeader).exactly(2).with('toto', 'test2')
+    subject.message.should_receive(:addHeader).twice.with('toto', 'test2')
     
     subject.add_header(:toto, 'test2')
     subject.add_header('toto', 'test2')
   end
   
   it 'should add an address header' do
-    subject.message.should_receive(:addAddressHeader).exactly(2).with('toto', 'test2')
+    subject.message.should_receive(:addAddressHeader).twice.with('toto', 'test2')
     
     subject.add_address_header(:toto, 'test2')
     subject.add_address_header('toto', 'test2')

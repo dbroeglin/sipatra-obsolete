@@ -1,3 +1,8 @@
+h1. DISCLAIMER
+
+This project continues to leave at "http://www.cipango.org":http://www.cipango.org.
+The repository is at "http://code.google.com/p/cipango/source/browse/#svn/trunk/extras/sipatra":http://code.google.com/p/cipango/source/browse/#svn/trunk/extras/sipatra.
+
 h1. SIPATRA
 
 Sipatra is a simple Sinatra like Ruby DSL for SIP Servlets. It's heavily inspired from Sinatra and was adapted only in those areas that were required by differences between the HTTP and SIP protocols. Sipatra is written is JRuby and targets SIP Servlet 1.1 compatible application servers
